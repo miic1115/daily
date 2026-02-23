@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>心靈沉澱日記 | 無條件愛自己</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #131c1a; /* 青瓷與琥珀的深青綠灰底色 */
+            color: #f8fafc;
+            overflow-x: hidden;
+            transition: background-color 1.5s ease-in-out;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        /* --- 全局光暈背景 --- */
+        .glass-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: -1;
+            animation: float 12s infinite ease-in-out alternate;
+            pointer-events: none;
+            transition: opacity 1.5s ease;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px) scale(1) translateX(0px); }
+            50% { transform: translateY(-20px) scale(1.05) translateX(10px); }
+            100% { transform: translateY(-40px) scale(1.1) translateX(-10px); }
+        }
+
+        /* --- 視圖切換 --- */
+        .view-section {
+            display: none;
+            min-height: 100vh;
+            width: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            animation: fadeIn 1s ease-out forwards;
+            position: relative;
+            z-index: 10;
+        }
+
+        .view-section.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- 毛玻璃 UI 元件 --- */
+        .glass-card {
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border-radius: 2rem;
+        }
+        
+        .glass-input {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            width: 100%;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+        }
+        .glass-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(20, 184, 166, 0.5); /* Teal focus */
+        }
+
+        .btn-glass {
+            background: linear-gradient(to right, rgba(13, 148, 136, 0.8), rgba(217, 119, 6, 0.8)); /* Teal to Amber */
+            color: white;
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(20, 184, 166, 0.2);
+            width: 100%;
+        }
+        .btn-glass:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 0 25px rgba(20, 184, 166, 0.3);
+        }
+        .btn-glass:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .btn-glass:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* --- 動畫 --- */
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.02); }
+        }
+
+        .ai-pulse {
+            animation: aiPulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+        }
+        @keyframes aiPulse {
+            0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 8px currentColor); }
+            50% { opacity: 0.5; transform: scale(0.95); filter: drop-shadow(0 0 2px currentColor); }
+        }
+
+        .breathing-circle {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.3) 0%, rgba(217, 119, 6, 0.1) 50%, transparent 70%);
+            animation: breathe 8s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(0.8); opacity: 0.3; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+        }
+
+        /* --- 相機元件 --- */
+        #camera-container {
+            width: 100%;
+            max-width: 320px;
+            height: 420px;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0,0,0,0.2);
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* 錄影當下鏡像顯示 */
+        }
+        #photo-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* 移除 scaleX(-1)，讓存下來的圖片所見即所得 */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 全局環境光暈 (青瓷與琥珀) -->
+    <div id="global-orbs">
+        <div class="glass-orb bg-teal-600/20 w-[28rem] h-[28rem] top-[-5%] right-[-10%]"></div>
+        <div class="glass-orb bg-amber-600/20 w-[24rem] h-[24rem] bottom-[5%] left-[-5%]" style="animation-delay: -4s;"></div>
+    </div>
+
+    <!-- 1. 啟動與定錨 (The Anchor) -->
+    <div id="view-splash" class="view-section active cursor-pointer" onclick="goToView('view-gratitude')">
+        <button onclick="event.stopPropagation(); showHistory();" class="absolute top-6 right-6 text-teal-200/50 hover:text-teal-100 transition flex items-center bg-white/5 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md">
+            <i class="fas fa-book-journal-whills text-lg"></i> <span class="text-sm ml-2 tracking-wider">回顧日記</span>
+        </button>
+        <div class="text-center space-y-10 pointer-events-none">
+            <div class="w-32 h-32 mx-auto rounded-full bg-teal-900/30 flex items-center justify-center border border-teal-500/20 shadow-[0_0_50px_rgba(20,184,166,0.2)]">
+                <i class="fas fa-moon text-4xl text-teal-200 opacity-80"></i>
+            </div>
+            <p class="text-xl md:text-2xl font-light tracking-widest text-teal-50 leading-relaxed" style="animation: pulse-soft 4s infinite;">
+                無條件愛自己、肯定自己<br>無論自己是什麼樣子。
+            </p>
+            <p class="text-sm text-teal-200/40 mt-12 tracking-widest">輕觸螢幕任意處開始</p>
+        </div>
+    </div>
+
+    <!-- 2. 收穫與感恩 (The Gain) -->
+    <div id="view-gratitude" class="view-section">
+        <div class="max-w-lg w-full mx-auto flex flex-col justify-center">
+            <div class="text-center mb-8">
+                <i class="fas fa-droplet text-teal-300 text-xl mb-4 opacity-80"></i>
+                <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-2">感恩與收穫</h2>
+                <p class="text-sm text-teal-200/60 font-light tracking-wide">無條件愛自己、肯定自己</p>
+            </div>
+
+            <div id="gratitude-inputs" class="glass-card p-6 sm:p-8">
+                <div class="space-y-8">
+                    <!-- Section 1 -->
+                    <div>
+                        <div class="flex items-center space-x-3 mb-5">
+                            <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center border border-teal-500/30">
+                                <i class="fas fa-heart text-teal-300 text-xs"></i>
+                            </div>
+                            <h3 class="text-base text-teal-100 font-medium">三件溫暖的人事物</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <input type="text" id="g-1" class="glass-input placeholder-teal-200/30" placeholder="1. 感謝...">
+                            <input type="text" id="g-2" class="glass-input placeholder-teal-200/30" placeholder="2. 感謝...">
+                            <input type="text" id="g-3" class="glass-input placeholder-teal-200/30" placeholder="3. 感謝...">
+                        </div>
+                    </div>
+                    
+                    <div class="w-full h-px bg-gradient-to-r from-transparent via-teal-300/10 to-transparent"></div>
+
+                    <!-- Section 2 -->
+                    <div>
+                        <div class="flex items-center space-x-3 mb-5">
+                            <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
+                                <i class="fas fa-seedling text-amber-300 text-xs"></i>
+                            </div>
+                            <h3 class="text-base text-amber-100 font-medium">三個微小的改變與收穫</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <input type="text" id="w-1" class="glass-input placeholder-amber-200/30" placeholder="1. 我今天完成了/學到了...">
+                            <input type="text" id="w-2" class="glass-input placeholder-amber-200/30" placeholder="2. 我今天完成了/學到了...">
+                            <input type="text" id="w-3" class="glass-input placeholder-amber-200/30" placeholder="3. 我今天完成了/學到了...">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-submit-gratitude" onclick="submitGratitude()" class="btn-glass mt-10">
+                    沉澱並封存
+                </button>
+            </div>
+
+            <!-- AI Feedback Section -->
+            <div id="gratitude-feedback" class="hidden mt-8 text-center glass-card p-6">
+                <i class="fas fa-moon text-teal-300 text-2xl mb-4 ai-pulse"></i>
+                <p class="text-teal-100/90 leading-relaxed font-light text-sm" id="gratitude-ai-content"></p>
+                <button onclick="goToView('view-tomorrow')" class="btn-glass mt-6 bg-transparent border border-teal-500/50 shadow-none hover:bg-teal-500/20">繼續前進</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 明日預備 (The Setup) -->
+    <div id="view-tomorrow" class="view-section">
+        <div class="max-w-md w-full mx-auto">
+            <div class="text-center mb-8">
+                <i class="fas fa-sun text-amber-300 text-3xl mb-4 opacity-80 ai-pulse"></i>
+                <h2 class="text-2xl font-light text-amber-50 tracking-wider mb-3">明日的微光</h2>
+                <p class="text-sm text-amber-100/60 font-light tracking-wide leading-relaxed">
+                    明天起床洗臉刷牙後，<br>你想為自己做的第一件事是什麼？<br>
+                    <span class="text-xs opacity-60">（讓自己感到踏實的起點）</span>
+                </p>
+            </div>
+            
+            <div id="tomorrow-inputs" class="glass-card p-8 text-center">
+                <input type="text" id="t-1" class="glass-input text-center text-base py-4 placeholder-amber-200/30 focus:border-amber-400/50" placeholder="例如：喝一杯溫開水、拉開窗簾...">
+                <button id="btn-submit-tomorrow" onclick="submitTomorrow()" class="btn-glass mt-8 bg-gradient-to-r from-amber-600/80 to-orange-500/80 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                    確認這個小承諾
+                </button>
+            </div>
+
+            <div id="tomorrow-feedback" class="hidden mt-8 text-center glass-card p-6">
+                <p class="text-amber-100/90 leading-relaxed font-light text-sm" id="tomorrow-ai-content"></p>
+                <button onclick="goToView('view-camera')" class="btn-glass mt-6 bg-transparent border border-amber-500/50 shadow-none hover:bg-amber-500/20">準備好了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 自我連結 (Self-Connection) -->
+    <div id="view-camera" class="view-section">
+        <div class="max-w-md w-full mx-auto flex flex-col items-center">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-3">看看自己</h2>
+                <p class="text-sm text-teal-200/60 font-light tracking-wide">今天的你辛苦了。<br>看著自己，給自己一個微笑吧。</p>
+            </div>
+
+            <div class="glass-card p-3 mb-8">
+                <div id="camera-container" class="rounded-2xl border border-white/5">
+                    <video id="camera-video" autoplay playsinline class="hidden rounded-2xl"></video>
+                    <img id="photo-preview" class="hidden rounded-2xl" alt="Your smile">
+                    <div id="camera-placeholder" class="w-full h-full flex flex-col items-center justify-center text-teal-100/40">
+                        <i class="fas fa-camera text-4xl mb-4"></i>
+                        <p class="text-sm tracking-wider">等待開啟相機</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full space-y-4 flex flex-col items-center">
+                <button id="btn-start-camera" onclick="startCamera()" class="btn-glass max-w-[280px]">
+                    <i class="fas fa-video mr-2"></i> 開啟鏡頭練習
+                </button>
+                
+                <div id="camera-controls" class="hidden w-full flex-col items-center space-y-4">
+                    <button onclick="takePhoto()" class="bg-white/90 text-teal-900 px-8 py-3 rounded-full font-medium tracking-wider shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:bg-white transition">
+                        <i class="fas fa-camera mr-2"></i> 拍下這個笑容
+                    </button>
+                    <div class="flex space-x-4 pt-4">
+                        <button onclick="savePhotoAndContinue()" id="btn-save-photo" class="hidden btn-glass text-sm px-6 py-2 w-auto">儲存到日記</button>
+                        <button onclick="skipCamera()" class="text-teal-200/50 hover:text-teal-100 underline text-sm py-2 tracking-wider">不留存，直接繼續</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 數位排毒 (Digital Detox) -->
+    <div id="view-detox" class="view-section text-center">
+        <div class="max-w-md w-full mx-auto">
+            <i class="fas fa-mobile-screen-button text-4xl text-teal-300/60 mb-8 ai-pulse"></i>
+            <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-4">切斷外界喧囂</h2>
+            <p class="text-sm text-teal-200/60 font-light tracking-wide leading-relaxed mb-10">
+                準備好進入夢鄉了嗎？<br>讓我們切斷外界的干擾，<br>把接下來的時間完全留給自己。
+            </p>
+
+            <label class="glass-card flex items-center justify-center space-x-4 cursor-pointer p-5 w-full max-w-[300px] mx-auto transition hover:bg-white/10 group">
+                <input type="checkbox" id="detox-check" class="w-5 h-5 rounded text-teal-500 bg-black/20 border-white/20 focus:ring-teal-500" onchange="toggleDetoxButton()">
+                <span class="text-base tracking-wider text-teal-50 group-hover:text-white transition">我已開啟飛航或睡眠模式</span>
+            </label>
+
+            <button id="btn-detox-next" onclick="goToView('view-meditation')" class="btn-glass mt-12 w-full max-w-[300px]" disabled>
+                我準備好了
+            </button>
+        </div>
+    </div>
+
+    <!-- 6. 冥想與結束 (Meditation & Sleep) -->
+    <div id="view-meditation" class="view-section text-center">
+        <div id="meditation-setup" class="max-w-md w-full mx-auto z-10">
+            <i class="fas fa-wind text-teal-300/60 text-3xl mb-6"></i>
+            <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-4">睡前沉澱</h2>
+            <p class="text-sm text-teal-200/60 font-light tracking-wide mb-12">跟著畫面光暈深呼吸，放空思緒。</p>
+            
+            <div class="space-y-4 w-full flex flex-col items-center">
+                <button onclick="startMeditation(5)" class="btn-glass max-w-[280px]">冥想 5 分鐘</button>
+                <button onclick="startMeditation(20)" class="btn-glass max-w-[280px] bg-gradient-to-r from-teal-700/80 to-teal-500/80">冥想 20 分鐘</button>
+                <button onclick="finishJourney()" class="text-teal-200/50 hover:text-teal-100 underline text-sm py-6 tracking-wider">直接去睡覺</button>
+            </div>
+        </div>
+
+        <div id="meditation-active" class="hidden flex-col items-center justify-center w-full h-full z-10 relative">
+            <button onclick="toggleMusic()" class="absolute top-0 right-4 md:right-10 text-teal-200/60 hover:text-white glass-card w-12 h-12 rounded-full flex items-center justify-center transition">
+                <i id="music-toggle-icon" class="fas fa-volume-up"></i>
+            </button>
+
+            <div class="breathing-circle mb-16"></div>
+            <div id="timer-display" class="text-6xl font-light text-teal-50 tracking-[0.1em] mb-12" style="text-shadow: 0 0 20px rgba(20,184,166,0.3);">05:00</div>
+            <button onclick="finishJourney()" class="glass-card px-8 py-3 text-sm tracking-wider text-teal-200/80 hover:text-white hover:bg-white/10 transition">
+                結束冥想
+            </button>
+        </div>
+    </div>
+
+    <!-- 晚安畫面 -->
+    <div id="view-goodnight" class="view-section text-center">
+        <div class="glass-orb bg-teal-900/40 w-[40rem] h-[40rem] top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2" style="animation: none;"></div>
+        <h1 class="text-4xl font-light tracking-[0.2em] text-teal-100 mb-6" style="animation: pulse-soft 6s infinite;">晚安</h1>
+        <p class="text-teal-200/40 text-sm font-light tracking-widest">世界已安靜，祝你做個好夢。</p>
+        <button onclick="goToView('view-splash')" class="mt-16 px-6 py-2 border border-teal-800/50 rounded-full text-teal-200/40 hover:bg-teal-900/30 hover:text-teal-200 transition text-sm tracking-widest z-10 relative">回到首頁</button>
+    </div>
+
+    <!-- 回顧日記 (History) -->
+    <div id="view-history" class="view-section justify-start pt-10">
+        <div class="w-full max-w-2xl mx-auto z-10">
+            <div class="flex justify-between items-center mb-8 px-2">
+                <h2 class="text-2xl font-light text-teal-50 tracking-wider"><i class="fas fa-book-open mr-3 text-teal-300/80"></i>回顧日記</h2>
+                <button onclick="goToView('view-splash')" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/60 hover:text-white transition">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <div id="history-container" class="space-y-6 overflow-y-auto pb-24 max-h-[80vh] px-2" style="scrollbar-width: none;">
+                <!-- 歷史紀錄將動態生成於此 -->
+            </div>
+            
+            <div class="text-center mt-6">
+                 <button onclick="clearHistory()" class="text-rose-400/50 hover:text-rose-400 text-xs tracking-wider underline">清除所有紀錄</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 狀態管理 ---
+        let currentEntry = {
+            id: null,
+            date: null,
+            gratitude: [],
+            gains: [],
+            tomorrow: "",
+            photoData: null
+        };
+        let stream = null;
+        let meditationTimer = null;
+        
+        // 音樂狀態
+        let audioCtx = null;
+        let isMusicPlaying = false;
+        let audioNodes = [];
+
+        // --- 模擬 AI 回應文字 ---
+        const gratitudeResponses = [
+            "像平靜的空間，接納你今天所有的努力。每一個細小的閃光，都匯聚成了獨特的你。",
+            "看見你寫下這些，感覺世界都跟著柔軟了起來。無論是什麼樣子，你都值得被愛。",
+            "即使日子平凡，你依然能從中找到光亮。謝謝你這麼用心地體驗今天。"
+        ];
+
+        const tomorrowResponses = [
+            "這聽起來是個很棒的開始，把焦點放在自己身上，享受那一刻的平靜吧。",
+            "帶著這份小小的期待入睡，明天一定會是很不錯的一天。",
+            "微小的行動將會為你開啟美好的一天，我們明天見。"
+        ];
+
+        // --- 音樂合成器 (Web Audio API) ---
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function startMeditationMusic() {
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            if (isMusicPlaying) return;
+
+            // 1. 產生療癒白噪音 (類似溫和的海浪聲 Brown Noise)
+            let bufferSize = 2 * audioCtx.sampleRate;
+            let noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            let output = noiseBuffer.getChannelData(0);
+            let lastOut = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                let white = Math.random() * 2 - 1;
+                output[i] = (lastOut + (0.02 * white)) / 1.02;
+                lastOut = output[i];
+                output[i] *= 3.5; // 音量補償
+            }
+            let noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            noiseSource.loop = true;
+
+            let noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.value = 300; // 過濾掉高頻，讓聲音變溫暖
+
+            let noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            noiseGain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 3); // 3秒淡入
+
+            noiseSource.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noiseSource.start();
+            audioNodes.push({ source: noiseSource, gain: noiseGain });
+
+            // 2. 產生頌缽低頻 (174Hz 減輕壓力的頻率)
+            let osc = audioCtx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.value = 174;
+
+            let oscGain = audioCtx.createGain();
+            oscGain.gain.setValueAtTime(0, audioCtx.currentTime);
+
+            // 加上 LFO 讓音量呈現呼吸起伏 (8秒一循環 = 0.125Hz，對應畫面的光圈)
+            let lfo = audioCtx.createOscillator();
+            lfo.type = 'sine';
+            lfo.frequency.value = 0.125;
+            let lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = 0.15; 
+            lfo.connect(oscGain.gain);
+            lfo.start();
+
+            oscGain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 3);
+
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
+            osc.start();
+            audioNodes.push({ source: osc, gain: oscGain, lfo: lfo });
+
+            isMusicPlaying = true;
+            document.getElementById('music-toggle-icon').className = 'fas fa-volume-up';
+        }
+
+        function stopMeditationMusic() {
+            if (!isMusicPlaying || !audioCtx) return;
+            audioNodes.forEach(node => {
+                // 2秒平滑淡出
+                node.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
+                setTimeout(() => {
+                    node.source.stop();
+                    if(node.lfo) node.lfo.stop();
+                }, 2100);
+            });
+            audioNodes = [];
+            isMusicPlaying = false;
+            document.getElementById('music-toggle-icon').className = 'fas fa-volume-mute';
+        }
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                stopMeditationMusic();
+            } else {
+                startMeditationMusic();
+            }
+        }
+
+        // --- 視圖導航與背景控制 ---
+        function goToView(viewId) {
+            // 清理相機與計時器、音樂
+            if(viewId !== 'view-camera') stopCamera();
+            if(viewId !== 'view-meditation') {
+                clearInterval(meditationTimer);
+                stopMeditationMusic();
+            }
+
+            // 控制全局光暈的顯示 (晚安模式時調暗)
+            const orbs = document.getElementById('global-orbs');
+            if (viewId === 'view-goodnight') {
+                orbs.style.opacity = '0';
+                document.body.style.backgroundColor = '#050a09'; // 極深色
+            } else if (viewId === 'view-meditation' || viewId === 'view-detox') {
+                orbs.style.opacity = '0.3';
+                document.body.style.backgroundColor = '#0a100f';
+            } else {
+                orbs.style.opacity = '1';
+                document.body.style.backgroundColor = '#131c1a'; // 預設青瓷灰
+            }
+
+            // 切換視圖
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // --- 步驟二：感恩與收穫 ---
+        function submitGratitude() {
+            const btn = document.getElementById('btn-submit-gratitude');
+            const originalText = btn.innerText;
+
+            const g1 = document.getElementById('g-1').value;
+            const g2 = document.getElementById('g-2').value;
+            const g3 = document.getElementById('g-3').value;
+            const w1 = document.getElementById('w-1').value;
+            const w2 = document.getElementById('w-2').value;
+            const w3 = document.getElementById('w-3').value;
+
+            // 儲存狀態 (過濾空白)
+            currentEntry.gratitude = [g1, g2, g3].filter(v => v.trim() !== "");
+            currentEntry.gains = [w1, w2, w3].filter(v => v.trim() !== "");
+
+            // UI 狀態切換
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 感受中...';
+            btn.disabled = true;
+            document.getElementById('gratitude-feedback').classList.add('hidden');
+
+            // 模擬 AI 思考時間
+            setTimeout(() => {
+                document.getElementById('gratitude-inputs').classList.add('hidden');
+                document.getElementById('gratitude-feedback').classList.remove('hidden');
+                document.getElementById('gratitude-feedback').style.animation = "fadeIn 0.8s ease forwards";
+                
+                const randomRes = gratitudeResponses[Math.floor(Math.random() * gratitudeResponses.length)];
+                document.getElementById('gratitude-ai-content').innerText = randomRes;
+                
+                // 恢復按鈕狀態 (如果使用者按上一頁回來)
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 1500);
+        }
+
+        // --- 步驟三：明日預備 ---
+        function submitTomorrow() {
+            const btn = document.getElementById('btn-submit-tomorrow');
+            const originalText = btn.innerText;
+            const t1 = document.getElementById('t-1').value;
+            
+            currentEntry.tomorrow = t1.trim();
+
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 注入能量...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                document.getElementById('tomorrow-inputs').classList.add('hidden');
+                document.getElementById('tomorrow-feedback').classList.remove('hidden');
+                document.getElementById('tomorrow-feedback').style.animation = "fadeIn 0.8s ease forwards";
+
+                const randomRes = tomorrowResponses[Math.floor(Math.random() * tomorrowResponses.length)];
+                document.getElementById('tomorrow-ai-content').innerText = randomRes;
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 1500);
+        }
+
+        // --- 步驟四：自我連結 (相機) ---
+        async function startCamera() {
+            const video = document.getElementById('camera-video');
+            const placeholder = document.getElementById('camera-placeholder');
+            const btnStart = document.getElementById('btn-start-camera');
+            const controls = document.getElementById('camera-controls');
+            const preview = document.getElementById('photo-preview');
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user" }, 
+                    audio: false 
+                });
+                video.srcObject = stream;
+                
+                placeholder.classList.add('hidden');
+                preview.classList.add('hidden');
+                video.classList.remove('hidden');
+                
+                btnStart.classList.add('hidden');
+                controls.classList.remove('hidden');
+                controls.classList.add('flex');
+            } catch (err) {
+                alert("無法開啟相機，可能是因為權限未允許，這一步我們會直接跳過喔！");
+                skipCamera();
+            }
+        }
+
+        function takePhoto() {
+            const video = document.getElementById('camera-video');
+            const preview = document.getElementById('photo-preview');
+            const btnSave = document.getElementById('btn-save-photo');
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 320;
+            canvas.height = 420;
+            const ctx = canvas.getContext('2d');
+            
+            // 鏡像處理：讓擷取的畫面也是水平翻轉過的，達到所見即所得
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            
+            const videoRatio = video.videoWidth / video.videoHeight;
+            const canvasRatio = canvas.width / canvas.height;
+            let drawWidth = canvas.width;
+            let drawHeight = canvas.height;
+            let startX = 0;
+            let startY = 0;
+
+            if (videoRatio > canvasRatio) {
+                drawWidth = canvas.height * videoRatio;
+                startX = (canvas.width - drawWidth) / 2;
+            } else {
+                drawHeight = canvas.width / videoRatio;
+                startY = (canvas.height - drawHeight) / 2;
+            }
+
+            ctx.drawImage(video, startX, startY, drawWidth, drawHeight);
+            
+            // 壓縮儲存空間
+            const photoData = canvas.toDataURL('image/jpeg', 0.6);
+            currentEntry.photoData = photoData;
+
+            preview.src = photoData;
+            video.classList.add('hidden');
+            preview.classList.remove('hidden');
+            btnSave.classList.remove('hidden');
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+        }
+
+        function savePhotoAndContinue() {
+            stopCamera();
+            goToView('view-detox');
+        }
+
+        function skipCamera() {
+            currentEntry.photoData = null;
+            stopCamera();
+            goToView('view-detox');
+        }
+
+        // --- 步驟五：數位排毒 ---
+        function toggleDetoxButton() {
+            const isChecked = document.getElementById('detox-check').checked;
+            const btn = document.getElementById('btn-detox-next');
+            if (isChecked) {
+                btn.removeAttribute('disabled');
+            } else {
+                btn.setAttribute('disabled', 'true');
+            }
+        }
+
+        // --- 步驟六：冥想與結束 ---
+        function startMeditation(minutes) {
+            document.getElementById('meditation-setup').classList.add('hidden');
+            document.getElementById('meditation-active').classList.remove('hidden');
+            document.getElementById('meditation-active').classList.add('flex');
+
+            // 啟動環境療癒音樂
+            startMeditationMusic();
+
+            let timeRemaining = minutes * 60;
+            const display = document.getElementById('timer-display');
+            
+            const updateDisplay = () => {
+                const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+                const s = (timeRemaining % 60).toString().padStart(2, '0');
+                display.innerText = `${m}:${s}`;
+            };
+            
+            updateDisplay();
+            
+            meditationTimer = setInterval(() => {
+                timeRemaining--;
+                updateDisplay();
+                if (timeRemaining <= 0) {
+                    clearInterval(meditationTimer);
+                    finishJourney();
+                }
+            }, 1000);
+        }
+
+        function finishJourney() {
+            saveJournalEntry();
+            goToView('view-goodnight');
+        }
+
+        // --- 本地儲存與歷史回顧 ---
+        function saveJournalEntry() {
+            currentEntry.id = Date.now();
+            const now = new Date();
+            currentEntry.date = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+            if(currentEntry.gratitude.length > 0 || currentEntry.gains.length > 0 || currentEntry.tomorrow !== "") {
+                let history = JSON.parse(localStorage.getItem('soulJournalHistory_v2')) || [];
+                history.unshift(currentEntry);
+                
+                // 保留最近 30 筆避免 LocalStorage 爆掉
+                if (history.length > 30) history.pop(); 
+                
+                try {
+                    localStorage.setItem('soulJournalHistory_v2', JSON.stringify(history));
+                } catch (e) {
+                    // 若圖片太大導致容量不足，清除圖片後重存
+                    currentEntry.photoData = null;
+                    history[0] = currentEntry;
+                    localStorage.setItem('soulJournalHistory_v2', JSON.stringify(history));
+                }
+            }
+            // 重置當前紀錄準備下一次
+            currentEntry = { id: null, date: null, gratitude: [], gains: [], tomorrow: "", photoData: null };
+            
+            // 重置表單畫面
+            document.getElementById('gratitude-inputs').classList.remove('hidden');
+            document.getElementById('gratitude-feedback').classList.add('hidden');
+            document.getElementById('tomorrow-inputs').classList.remove('hidden');
+            document.getElementById('tomorrow-feedback').classList.add('hidden');
+            document.querySelectorAll('input').forEach(input => input.value = '');
+            document.getElementById('detox-check').checked = false;
+            toggleDetoxButton();
+            document.getElementById('meditation-setup').classList.remove('hidden');
+            document.getElementById('meditation-active').classList.add('hidden');
+            document.getElementById('camera-placeholder').classList.remove('hidden');
+            document.getElementById('photo-preview').classList.add('hidden');
+            document.getElementById('camera-video').classList.add('hidden');
+            document.getElementById('camera-controls').classList.add('hidden');
+            document.getElementById('camera-controls').classList.remove('flex');
+            document.getElementById('btn-start-camera').classList.remove('hidden');
+            document.getElementById('btn-save-photo').classList.add('hidden');
+        }
+
+        function showHistory() {
+            goToView('view-history');
+            const container = document.getElementById('history-container');
+            container.innerHTML = '';
+
+            let history = JSON.parse(localStorage.getItem('soulJournalHistory_v2')) || [];
+
+            if (history.length === 0) {
+                container.innerHTML = '<div class="text-center text-teal-200/40 mt-12 py-12"><i class="fas fa-inbox text-4xl mb-4 opacity-50"></i><br><span class="tracking-widest text-sm">目前還沒有紀錄<br>去完成今天的沉澱吧</span></div>';
+                return;
+            }
+
+            history.forEach(entry => {
+                const card = document.createElement('div');
+                card.className = 'glass-card p-6';
+                
+                let contentHTML = `<div class="border-b border-white/10 pb-3 mb-5 flex justify-between items-end">
+                                    <span class="text-teal-200 font-medium tracking-wider text-sm"><i class="far fa-calendar-alt mr-2 opacity-70"></i>${entry.date}</span>
+                                   </div>`;
+                
+                contentHTML += `<div class="flex flex-col md:flex-row gap-6">`;
+                contentHTML += `<div class="flex-1 space-y-5">`;
+                
+                if(entry.gratitude && entry.gratitude.length > 0) {
+                    contentHTML += `<div><h4 class="text-xs text-teal-300/80 mb-2 tracking-wider"><i class="fas fa-heart text-[10px] mr-1"></i>溫暖的人事物</h4><ul class="list-disc list-inside text-sm text-teal-50/90 space-y-1.5 font-light">`;
+                    entry.gratitude.forEach(i => contentHTML += `<li>${i}</li>`);
+                    contentHTML += `</ul></div>`;
+                }
+                
+                if(entry.gains && entry.gains.length > 0) {
+                    contentHTML += `<div><h4 class="text-xs text-amber-300/80 mb-2 tracking-wider"><i class="fas fa-seedling text-[10px] mr-1"></i>微小的收穫</h4><ul class="list-disc list-inside text-sm text-teal-50/90 space-y-1.5 font-light">`;
+                    entry.gains.forEach(i => contentHTML += `<li>${i}</li>`);
+                    contentHTML += `</ul></div>`;
+                }
+
+                if(entry.tomorrow) {
+                    contentHTML += `<div><h4 class="text-xs text-orange-300/80 mb-2 tracking-wider"><i class="fas fa-sun text-[10px] mr-1"></i>明日的起點</h4><p class="text-sm text-teal-50/90 font-light pl-1">${entry.tomorrow}</p></div>`;
+                }
+                
+                contentHTML += `</div>`; 
+
+                if(entry.photoData) {
+                    contentHTML += `<div class="w-24 h-32 flex-shrink-0 md:w-32 md:h-40 rounded-xl overflow-hidden border border-white/10 self-start md:self-center mx-auto md:mx-0 shadow-lg">
+                                        <img src="${entry.photoData}" alt="My smile" class="w-full h-full object-cover">
+                                    </div>`;
+                }
+
+                contentHTML += `</div>`;
+                card.innerHTML = contentHTML;
+                container.appendChild(card);
+            });
+        }
+
+        function clearHistory() {
+            if(confirm("確定要清除所有回顧紀錄嗎？這個動作無法復原喔。")) {
+                localStorage.removeItem('soulJournalHistory_v2');
+                showHistory();
+            }
+        }
+    </script>
+</body>
+</html>
