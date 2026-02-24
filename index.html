@@ -140,28 +140,7 @@
             50% { transform: scale(1.5); opacity: 0.8; }
         }
 
-        /* --- 相機元件 --- */
-        #camera-container {
-            width: 100%;
-            max-width: 320px;
-            height: 420px;
-            border-radius: 1.5rem;
-            overflow: hidden;
-            position: relative;
-            background: rgba(0,0,0,0.2);
-        }
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1); /* 錄影當下鏡像顯示 */
-        }
-        #photo-preview {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            /* 移除 scaleX(-1)，讓存下來的圖片所見即所得 */
-        }
+        /* --- 相機元件已透過 Tailwind 的 absolute inset 處理，移除舊版固定尺寸 --- */
     </style>
 </head>
 <body>
@@ -280,11 +259,11 @@
                 <p class="text-sm text-teal-200/60 font-light tracking-wide">今天的你辛苦了。<br>看著自己，給自己一個微笑吧。</p>
             </div>
 
-            <div class="glass-card p-3 mb-8">
-                <div id="camera-container" class="rounded-2xl border border-white/5">
-                    <video id="camera-video" autoplay playsinline class="hidden rounded-2xl"></video>
-                    <img id="photo-preview" class="hidden rounded-2xl" alt="Your smile">
-                    <div id="camera-placeholder" class="w-full h-full flex flex-col items-center justify-center text-teal-100/40">
+            <div class="glass-card p-2 md:p-3 mb-8 w-full max-w-[300px] mx-auto">
+                <div id="camera-container" class="relative w-full aspect-[3/4] rounded-2xl border border-white/5 overflow-hidden bg-black/20 flex items-center justify-center shadow-inner">
+                    <video id="camera-video" autoplay playsinline class="hidden absolute inset-0 w-full h-full object-cover" style="transform: scaleX(-1);"></video>
+                    <img id="photo-preview" class="hidden absolute inset-0 w-full h-full object-cover" alt="Your smile">
+                    <div id="camera-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-teal-100/40">
                         <i class="fas fa-camera text-4xl mb-4"></i>
                         <p class="text-sm tracking-wider">等待開啟相機</p>
                     </div>
@@ -292,17 +271,24 @@
             </div>
 
             <div class="w-full space-y-4 flex flex-col items-center">
-                <button id="btn-start-camera" onclick="startCamera()" class="btn-glass max-w-[280px]">
-                    <i class="fas fa-video mr-2"></i> 開啟鏡頭練習
-                </button>
+                <!-- 尚未開啟相機時的按鈕 -->
+                <div id="camera-init-controls" class="w-full space-y-4 flex flex-col items-center">
+                    <button id="btn-start-camera" onclick="startCamera()" class="btn-glass max-w-[280px]">
+                        <i class="fas fa-video mr-2"></i> 開啟鏡頭練習
+                    </button>
+                    <button onclick="skipCamera()" class="text-teal-200/50 hover:text-teal-100 underline text-sm py-2 tracking-wider transition">
+                        跳過拍照，直接繼續
+                    </button>
+                </div>
                 
+                <!-- 開啟相機後的控制項 -->
                 <div id="camera-controls" class="hidden w-full flex-col items-center space-y-4">
-                    <button onclick="takePhoto()" class="bg-white/90 text-teal-900 px-8 py-3 rounded-full font-medium tracking-wider shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:bg-white transition">
+                    <button id="btn-take-photo" onclick="takePhoto()" class="bg-white/90 text-teal-900 px-8 py-3 rounded-full font-medium tracking-wider shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:bg-white transition">
                         <i class="fas fa-camera mr-2"></i> 拍下這個笑容
                     </button>
                     <div class="flex space-x-4 pt-4">
                         <button onclick="savePhotoAndContinue()" id="btn-save-photo" class="hidden btn-glass text-sm px-6 py-2 w-auto">儲存到日記</button>
-                        <button onclick="skipCamera()" class="text-teal-200/50 hover:text-teal-100 underline text-sm py-2 tracking-wider">不留存，直接繼續</button>
+                        <button onclick="skipCamera()" id="btn-skip-photo" class="text-teal-200/50 hover:text-teal-100 underline text-sm py-2 tracking-wider">不留存，直接繼續</button>
                     </div>
                 </div>
             </div>
@@ -603,7 +589,7 @@
         async function startCamera() {
             const video = document.getElementById('camera-video');
             const placeholder = document.getElementById('camera-placeholder');
-            const btnStart = document.getElementById('btn-start-camera');
+            const initControls = document.getElementById('camera-init-controls');
             const controls = document.getElementById('camera-controls');
             const preview = document.getElementById('photo-preview');
 
@@ -618,7 +604,7 @@
                 preview.classList.add('hidden');
                 video.classList.remove('hidden');
                 
-                btnStart.classList.add('hidden');
+                initControls.classList.add('hidden');
                 controls.classList.remove('hidden');
                 controls.classList.add('flex');
             } catch (err) {
@@ -631,6 +617,8 @@
             const video = document.getElementById('camera-video');
             const preview = document.getElementById('photo-preview');
             const btnSave = document.getElementById('btn-save-photo');
+            const btnTake = document.getElementById('btn-take-photo');
+            const btnSkip = document.getElementById('btn-skip-photo');
             
             const canvas = document.createElement('canvas');
             canvas.width = 320;
@@ -665,7 +653,32 @@
             preview.src = photoData;
             video.classList.add('hidden');
             preview.classList.remove('hidden');
+            
             btnSave.classList.remove('hidden');
+            btnTake.classList.add('hidden');
+            
+            // 拍完照後，將放棄按鈕轉換為重新拍攝
+            btnSkip.innerText = "重新拍攝";
+            btnSkip.onclick = resetCamera;
+        }
+
+        function resetCamera() {
+            const video = document.getElementById('camera-video');
+            const preview = document.getElementById('photo-preview');
+            const btnSave = document.getElementById('btn-save-photo');
+            const btnTake = document.getElementById('btn-take-photo');
+            const btnSkip = document.getElementById('btn-skip-photo');
+
+            currentEntry.photoData = null;
+            preview.classList.add('hidden');
+            video.classList.remove('hidden');
+            
+            btnSave.classList.add('hidden');
+            btnTake.classList.remove('hidden');
+            
+            // 恢復放棄按鈕狀態
+            btnSkip.innerText = "不留存，直接繼續";
+            btnSkip.onclick = skipCamera;
         }
 
         function stopCamera() {
@@ -767,13 +780,24 @@
             toggleDetoxButton();
             document.getElementById('meditation-setup').classList.remove('hidden');
             document.getElementById('meditation-active').classList.add('hidden');
+            
+            // 重置相機畫面
             document.getElementById('camera-placeholder').classList.remove('hidden');
             document.getElementById('photo-preview').classList.add('hidden');
             document.getElementById('camera-video').classList.add('hidden');
             document.getElementById('camera-controls').classList.add('hidden');
             document.getElementById('camera-controls').classList.remove('flex');
-            document.getElementById('btn-start-camera').classList.remove('hidden');
-            document.getElementById('btn-save-photo').classList.add('hidden');
+            document.getElementById('camera-init-controls').classList.remove('hidden');
+            
+            const btnTake = document.getElementById('btn-take-photo');
+            if(btnTake) btnTake.classList.remove('hidden');
+            const btnSave = document.getElementById('btn-save-photo');
+            if(btnSave) btnSave.classList.add('hidden');
+            const btnSkip = document.getElementById('btn-skip-photo');
+            if(btnSkip) {
+                btnSkip.innerText = "不留存，直接繼續";
+                btnSkip.onclick = skipCamera;
+            }
         }
 
         function showHistory() {
