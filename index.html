@@ -140,12 +140,14 @@
             50% { transform: scale(1.5); opacity: 0.8; }
         }
 
-        /* --- 漣漪指示動畫 (淡化為光暈感) --- */
+        /* --- 漣漪指示動畫 (款式一：連續向外擴散的微光) --- */
         .ripple-indicator {
             width: 60px;
             height: 60px;
-            border-radius: 50%;
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             margin: 0 auto;
         }
         .ripple-indicator::before, .ripple-indicator::after {
@@ -153,16 +155,18 @@
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             border-radius: 50%;
-            background-color: rgba(20, 184, 166, 0.3);
-            filter: blur(8px);
-            animation: ripple-soft 3s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: rgba(20, 184, 166, 0.2);
+            filter: blur(15px);
+            opacity: 0; /* 初始狀態設為完全透明，避免突兀出現 */
+            animation: ripple-glow-continuous 4s infinite cubic-bezier(0.1, 0.5, 0.3, 1);
         }
         .ripple-indicator::after {
-            animation-delay: 1.5s;
+            animation-delay: 2s;
         }
-        @keyframes ripple-soft {
-            0% { transform: scale(0.5); opacity: 0.8; }
-            100% { transform: scale(2.5); opacity: 0; }
+        @keyframes ripple-glow-continuous {
+            0% { transform: scale(0); opacity: 0; }
+            25% { opacity: 0.6; } /* 在擴散的前 25% 過程中慢慢變亮 */
+            100% { transform: scale(3.5); opacity: 0; } /* 最後慢慢變淡到消失 */
         }
 
     </style>
@@ -252,13 +256,12 @@
         <div class="max-w-md w-full mx-auto mt-8 md:mt-0">
             <div class="text-center mb-8">
                 <h2 class="text-2xl font-light text-amber-50 tracking-wider mb-3">明日的微光</h2>
-                <p class="text-sm text-amber-100/60 font-light tracking-wide leading-relaxed">
-                    明天起床洗臉刷牙後，<br>你想為自己做的第一件事是什麼？<br>
-                    <span class="text-xs opacity-60">（讓自己感到踏實的起點）</span>
-                </p>
             </div>
             
             <div id="tomorrow-inputs" class="glass-card p-8 text-center">
+                <p class="text-sm text-amber-100/60 font-light tracking-wide leading-relaxed mb-6">
+                    明天起床洗臉刷牙後，<br>你想為自己做的第一件事是什麼？
+                </p>
                 <input type="text" id="t-1" class="glass-input text-center text-base py-4 placeholder-amber-200/30 focus:border-amber-400/50" placeholder="例如：喝一杯溫開水、拉開窗簾...">
                 <button id="btn-submit-tomorrow" onclick="submitTomorrow()" class="btn-glass mt-8 bg-gradient-to-r from-amber-600/80 to-orange-500/80 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
                     確認這個小承諾
@@ -283,7 +286,7 @@
 
         <div class="max-w-md w-full mx-auto flex flex-col items-center mt-8 md:mt-0">
             <div class="text-center mb-8">
-                <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-3">看看自己</h2>
+                <h2 class="text-4xl font-light text-teal-50 tracking-wider mb-3">:)</h2>
                 <p class="text-sm text-teal-200/60 font-light tracking-wide">今天的你辛苦了。<br>看著自己，給自己一個微笑吧。</p>
             </div>
 
@@ -302,10 +305,10 @@
                 <!-- 尚未開啟相機時的按鈕 -->
                 <div id="camera-init-controls" class="w-full space-y-4 flex flex-col items-center">
                     <button id="btn-start-camera" onclick="startCamera()" class="btn-glass max-w-[280px]">
-                        <i class="fas fa-video mr-2"></i> 開啟鏡頭練習
+                        <i class="fas fa-video mr-2"></i> 記錄今天的自己
                     </button>
-                    <button onclick="skipCamera()" class="text-teal-200/50 hover:text-teal-100 underline text-sm py-2 tracking-wider transition">
-                        跳過拍照，直接繼續
+                    <button onclick="skipCamera()" class="text-teal-200/30 hover:text-teal-100 text-xs py-2 tracking-widest transition uppercase">
+                        skip
                     </button>
                 </div>
                 
@@ -316,7 +319,7 @@
                     </button>
                     <div class="flex space-x-4 pt-4">
                         <button onclick="savePhotoAndContinue()" id="btn-save-photo" class="hidden btn-glass text-sm px-6 py-2 w-auto">儲存到日記</button>
-                        <button onclick="skipCamera()" id="btn-skip-photo" class="text-teal-200/50 hover:text-teal-100 underline text-sm py-2 tracking-wider">不留存，直接繼續</button>
+                        <button onclick="skipCamera()" id="btn-skip-photo" class="text-teal-200/30 hover:text-teal-100 text-xs py-2 tracking-widest uppercase">skip</button>
                     </div>
                 </div>
             </div>
@@ -330,7 +333,6 @@
         </button>
 
         <div class="max-w-md w-full mx-auto mt-8 md:mt-0">
-            <i class="fas fa-mobile-screen-button text-4xl text-teal-300/60 mb-8 ai-pulse"></i>
             <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-4">切斷外界喧囂</h2>
             <p class="text-sm text-teal-200/60 font-light tracking-wide leading-relaxed mb-10">
                 準備好進入夢鄉了嗎？<br>讓我們切斷外界的干擾，<br>把接下來的時間完全留給自己。
@@ -515,21 +517,33 @@
 
         // --- 晚安後平滑返回首頁 ---
         function fadeToSplash() {
-            // 創造一個黑色的遮罩並讓它慢慢浮現
+            // 創造一個黑色的遮罩並設定原生的平滑過渡動畫
             const overlay = document.createElement('div');
-            overlay.className = 'fixed inset-0 bg-[#000000] z-[999] opacity-0 transition-opacity duration-[2000ms] pointer-events-none';
+            overlay.style.position = 'fixed';
+            overlay.style.inset = '0';
+            overlay.style.backgroundColor = '#000000';
+            overlay.style.zIndex = '9999';
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 3s ease-in-out'; // 設定 3 秒的平滑漸變
+            overlay.style.pointerEvents = 'none';
             document.body.appendChild(overlay);
             
             // 強制瀏覽器重繪，讓 transition 生效
             void overlay.offsetWidth;
+            
+            // 1. 畫面開始慢慢變暗
             overlay.style.opacity = '1';
             
-            // 畫面全黑後切換視圖，再慢慢淡出黑色遮罩
+            // 2. 等待 3 秒全黑後，切換視圖，再慢慢變亮
             setTimeout(() => {
                 goToView('view-splash');
+                
+                // 畫面全黑時切換了首頁，接著讓黑色遮罩慢慢淡出 (變亮)
                 overlay.style.opacity = '0';
-                setTimeout(() => overlay.remove(), 2000); // 等待淡出動畫結束後移除
-            }, 2500); 
+                
+                // 3. 等待淡出動畫結束後，將遮罩元件移除
+                setTimeout(() => overlay.remove(), 3000);
+            }, 3000); 
         }
 
         // --- 表單重置邏輯抽離 ---
@@ -571,7 +585,7 @@
             if(btnSave) btnSave.classList.add('hidden');
             const btnSkip = document.getElementById('btn-skip-photo');
             if(btnSkip) {
-                btnSkip.innerText = "不留存，直接繼續";
+                btnSkip.innerText = "skip";
                 btnSkip.onclick = skipCamera;
             }
 
@@ -853,7 +867,7 @@
             btnSave.classList.add('hidden');
             btnTake.classList.remove('hidden');
             
-            btnSkip.innerText = "不留存，直接繼續";
+            btnSkip.innerText = "skip";
             btnSkip.onclick = skipCamera;
         }
 
