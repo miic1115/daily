@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <!-- === App Icons 與 Web App 設定 === -->
-    <title>Have a Nice Day</title>
-    <link rel="icon" href="https://cdn.imgchest.com/files/82dd4f0b1886.jpg" type="image/jpeg">
-    <link rel="apple-touch-icon" href="https://cdn.imgchest.com/files/82dd4f0b1886.jpg">
+    <title>心靈沉澱日記 | 無條件愛自己</title>
+    <link rel="icon" href="https://cdn.imgchest.com/files/e65e0cb00650.png" type="image/png">
+    <link rel="apple-touch-icon" href="https://cdn.imgchest.com/files/e65e0cb00650.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <!-- ============================== -->
@@ -146,8 +146,8 @@
            手寫微笑 SVG 動畫核心邏輯
            ========================================================== */
         .svg-breathe-container {
-            /* 配合延遲：在微笑畫完後 (大約 6s) 開始呼吸光暈 */
-            animation: pulse-soft-svg 4s infinite 6s;
+            /* 配合延遲：提早到第 5 秒開始呼吸光暈 */
+            animation: pulse-soft-svg 4s infinite 5s;
             color: rgba(248, 250, 252, 0.9); 
         }
 
@@ -157,22 +157,22 @@
         }
 
         /* --- SVG 繪製路徑動畫 (重塑手寫節奏) --- */
-        /* 黑幕淡出需 3 秒，所以第一筆設定在第 4 秒開始 (完全亮起後 1 秒) */
+        /* 黑幕淡出需 3 秒，第一筆提早在第 3 秒剛好甦醒時畫上 */
         .draw-eye-1 {
             stroke-dasharray: 20; stroke-dashoffset: 20;
-            animation: drawLine 0.3s ease-out forwards 4s; 
+            animation: drawLine 0.3s ease-out forwards 3s; 
         }
         .draw-eye-2 {
             stroke-dasharray: 20; stroke-dashoffset: 20;
-            animation: drawLine 0.3s ease-out forwards 4.3s;
+            animation: drawLine 0.3s ease-out forwards 3.3s;
         }
         .draw-smile {
             stroke-dasharray: 120; stroke-dashoffset: 120; 
-            animation: drawLine 0.9s cubic-bezier(0.5, 0, 0.2, 1) forwards 4.7s; 
+            animation: drawLine 0.9s cubic-bezier(0.5, 0, 0.2, 1) forwards 3.7s; 
         }
         .draw-cheek {
             stroke-dasharray: 30; stroke-dashoffset: 30;
-            animation: drawLine 0.4s ease-out forwards 5.6s;
+            animation: drawLine 0.4s ease-out forwards 4.6s;
         }
 
         @keyframes drawLine {
@@ -260,12 +260,12 @@
             100% { transform: scale(6); opacity: 0; } /* 擴大範圍且只有由內向外 */
         }
 
-        /* 針對首頁的漣漪動畫延遲，配合手寫動畫時間 */
+        /* 針對首頁的漣漪動畫延遲，配合手寫動畫提早的時間 */
         #view-splash .ripple-indicator::before {
-            animation-delay: 6.2s;
+            animation-delay: 5.2s;
         }
         #view-splash .ripple-indicator::after {
-            animation-delay: 8.2s;
+            animation-delay: 7.2s;
         }
 
     </style>
@@ -288,8 +288,8 @@
         </button>
         <div class="text-center space-y-10 pointer-events-none mt-16 flex flex-col items-center w-full">
             
-            <!-- 手寫 SVG 的專屬放置區塊 -->
-            <div class="svg-breathe-container w-full max-w-[150px] md:max-w-[200px] flex justify-center items-center">
+            <!-- 手寫 SVG 的專屬放置區塊 (寬度放大1.5倍) -->
+            <div class="svg-breathe-container w-full max-w-[225px] md:max-w-[300px] flex justify-center items-center">
                 <!-- 精準臨摹你上傳的笑臉，加入可愛的小酒窩 -->
                 <svg viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto drop-shadow-lg">
                     <path class="draw-eye-1" d="M 56 38 L 56 46" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>
@@ -373,7 +373,7 @@
 
         <div class="max-w-md w-full mx-auto mt-8 md:mt-0">
             <div class="text-center mb-8">
-                <h2 class="text-2xl font-light text-amber-50 tracking-wider mb-3">明日的微光</h2>
+                <h2 class="text-2xl font-light text-amber-50 tracking-wider mb-3">小行動</h2>
             </div>
             
             <div id="tomorrow-wrapper" class="w-full flex flex-col">
@@ -416,11 +416,6 @@
         </button>
 
         <div class="max-w-md w-full mx-auto flex flex-col items-center mt-8 md:mt-0">
-            <div class="text-center mb-8">
-                <h2 class="text-4xl font-light text-teal-50 tracking-wider mb-3">:)</h2>
-                <p class="text-sm text-teal-200/60 font-light tracking-wide">今天的你辛苦了。<br>看著自己，給自己一個微笑吧。</p>
-            </div>
-
             <div class="glass-card p-2 md:p-3 mb-8 w-full max-w-[300px] mx-auto">
                 <div id="camera-container" class="relative w-full aspect-[3/4] rounded-2xl border border-white/5 overflow-hidden bg-black/20 flex items-center justify-center shadow-inner">
                     <video id="camera-video" autoplay playsinline class="hidden absolute inset-0 w-full h-full object-cover" style="transform: scaleX(-1);"></video>
@@ -503,8 +498,12 @@
                 <i id="music-toggle-icon" class="fas fa-volume-up"></i>
             </button>
 
-            <div class="breathing-circle mb-16"></div>
-            <div id="timer-display" class="text-6xl font-light text-teal-50 tracking-[0.1em] mb-12" style="text-shadow: 0 0 20px rgba(20,184,166,0.3);">05:00</div>
+            <!-- 透過 relative 和 absolute 使呼吸光暈與時間完美置中 -->
+            <div class="relative flex justify-center items-center w-[220px] h-[220px] mb-12 mt-8">
+                <div class="breathing-circle absolute inset-0"></div>
+                <div id="timer-display" class="text-6xl font-light text-teal-50 tracking-[0.1em] relative z-10" style="text-shadow: 0 0 20px rgba(20,184,166,0.3);">05:00</div>
+            </div>
+
             <button onclick="finishJourney()" class="px-10 py-3 rounded-full border border-transparent text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center">
                 <span class="btn-text">結束冥想</span>
             </button>
@@ -1232,7 +1231,7 @@
             }
 
             if(entry.tomorrow && entry.tomorrow.length > 0) {
-                html += `<div><h4 class="text-xs text-orange-300/80 mb-2 tracking-wider"><i class="fas fa-sun text-[10px] mr-1"></i>明日的起點</h4>`;
+                html += `<div><h4 class="text-xs text-orange-300/80 mb-2 tracking-wider"><i class="fas fa-sun text-[10px] mr-1"></i>小行動</h4>`;
                 
                 if (Array.isArray(entry.tomorrow)) {
                     html += `<ul class="list-disc list-inside text-sm text-teal-50/90 space-y-1.5 font-light">`;
