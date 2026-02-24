@@ -5,14 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <!-- === App Icons 與 Web App 設定 === -->
-    <title>沉澱日記 | 無條件愛自己</title>
-    <!-- 桌面版瀏覽器頁籤小圖示 -->
+    <title>心靈沉澱日記 | 無條件愛自己</title>
     <link rel="icon" href="https://cdn.imgchest.com/files/82dd4f0b1886.jpg" type="image/jpeg">
-    <!-- iOS 桌面捷徑 App Icon -->
     <link rel="apple-touch-icon" href="https://cdn.imgchest.com/files/82dd4f0b1886.jpg">
-    <!-- 讓 iOS Safari 隱藏上下導覽列，看起來像原生 App -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- 設定 iOS 狀態列顏色 (黑色/透明) -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <!-- ============================== -->
 
@@ -29,13 +25,22 @@
             transition: background-color 1.5s ease-in-out;
             margin: 0;
             min-height: 100vh;
-            /* 避免 iOS Safari 下方出現多餘空白或回彈 */
             overscroll-behavior-y: none;
         }
 
         ::-webkit-scrollbar {
             width: 0px;
             background: transparent;
+        }
+
+        /* --- 啟動時的黑幕甦醒效果 --- */
+        #startup-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: #050a09; /* 極深的黑色 */
+            z-index: 9999;
+            pointer-events: none;
+            transition: opacity 3s ease-in-out; /* 3秒緩慢睜眼的感覺 */
         }
 
         /* --- 全局光暈背景 (加入呼吸燈效果) --- */
@@ -54,7 +59,7 @@
             100% { transform: translateY(-40px) scale(0.9) translateX(-10px); opacity: 0.5; }
         }
 
-        /* --- 視圖切換 --- */
+        /* --- 視圖切換 (放慢、加大距離的 Push 效果) --- */
         .view-section {
             display: none;
             min-height: 100vh;
@@ -63,7 +68,8 @@
             justify-content: center;
             align-items: center;
             padding: 2rem;
-            animation: slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            /* 將秒數拉長為 2s，讓過場更平緩優雅 */
+            animation: slideUpFade 2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
             position: relative;
             z-index: 10;
         }
@@ -73,7 +79,7 @@
         }
 
         @keyframes slideUpFade {
-            from { opacity: 0; transform: translateY(40px); }
+            from { opacity: 0; transform: translateY(15vh); } /* 加大位移距離，更有整頁推上來的感覺 */
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -84,7 +90,7 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border-radius: 2rem;
+            border-radius: 1rem; /* 圓角縮小一半 */
         }
         
         .glass-input {
@@ -111,7 +117,7 @@
             outline: none;
             color: rgba(255, 255, 255, 0.9);
             font-size: 0.95rem;
-            line-height: 1.8;
+            line-height: 1.5; /* 縮小行距，更像筆記本 */
             resize: none;
             overflow-y: hidden;
             box-shadow: none;
@@ -155,14 +161,14 @@
             transform-origin: center;
             animation: border-spin 3s linear infinite;
             z-index: 0;
-            filter: blur(8px); /* 加入模糊濾鏡，讓光暈變得輕柔 */
+            filter: blur(8px); /* 模糊濾鏡，讓光暈變得輕柔 */
             opacity: 0.8;
         }
         .btn-loading-state::after {
             content: '';
             position: absolute;
-            inset: 1.5px; /* 稍微加厚遮罩邊界，讓邊緣更柔和 */
-            background-color: #131c1a; /* 配合背景色 */
+            inset: 1.5px;
+            background-color: #131c1a;
             border-radius: 9999px;
             z-index: 0;
         }
@@ -205,38 +211,41 @@
             border-radius: 50%;
             background-color: rgba(20, 184, 166, 0.2);
             filter: blur(15px);
-            opacity: 0; /* 初始狀態設為完全透明，避免突兀出現 */
+            opacity: 0; /* 初始完全透明 */
             animation: ripple-glow-continuous 4s infinite cubic-bezier(0.1, 0.5, 0.3, 1);
         }
         .ripple-indicator::after {
             animation-delay: 2s;
         }
         @keyframes ripple-glow-continuous {
-            0% { transform: scale(0); opacity: 0; }
-            25% { opacity: 0.6; } /* 在擴散的前 25% 過程中慢慢變亮 */
-            100% { transform: scale(3.5); opacity: 0; } /* 最後慢慢變淡到消失 */
+            0% { transform: scale(0.1); opacity: 0; }
+            15% { opacity: 0.8; }
+            100% { transform: scale(6); opacity: 0; } /* 擴大範圍且只有由內向外 */
         }
 
     </style>
 </head>
 <body>
 
-    <!-- 全局環境光暈 (青瓷與琥珀) -->
+    <!-- 啟動時的黑幕 (載入後淡出，營造睜眼的感覺) -->
+    <div id="startup-overlay"></div>
+
+    <!-- 全局環境光暈 (青瓷與琥珀) - 加入 RWD 適配 -->
     <div id="global-orbs">
-        <div class="glass-orb bg-teal-600/20 w-[28rem] h-[28rem] top-[-5%] right-[-10%]"></div>
-        <div class="glass-orb bg-amber-600/20 w-[24rem] h-[24rem] bottom-[5%] left-[-5%]" style="animation-delay: -4s;"></div>
+        <div class="glass-orb bg-teal-600/20 w-[18rem] h-[18rem] md:w-[28rem] md:h-[28rem] top-[-2%] right-[-2rem] md:right-[-10%]"></div>
+        <div class="glass-orb bg-amber-600/20 w-[16rem] h-[16rem] md:w-[24rem] md:h-[24rem] bottom-[5%] left-[-2rem] md:left-[-5%]" style="animation-delay: -4s;"></div>
     </div>
 
     <!-- 1. 啟動與定錨 (The Anchor) -->
     <div id="view-splash" class="view-section active cursor-pointer" onclick="goToView('view-gratitude')">
-        <button onclick="event.stopPropagation(); showHistory();" class="absolute top-6 right-6 text-teal-200/50 hover:text-teal-100 transition flex items-center bg-white/5 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md z-[100]">
-            <i class="fas fa-book-journal-whills text-lg"></i> <span class="text-sm ml-2 tracking-wider">回顧日記</span>
+        <button onclick="event.stopPropagation(); showHistory();" class="absolute top-6 right-6 text-teal-200/50 hover:text-teal-100 transition tracking-widest text-sm z-[100]">
+            回顧
         </button>
         <div class="text-center space-y-10 pointer-events-none mt-16">
             <p class="text-xl md:text-2xl font-light tracking-widest text-teal-50 leading-relaxed" style="animation: pulse-soft 4s infinite;">
                 無條件愛自己、肯定自己<br>無論自己是什麼樣子。
             </p>
-            <div class="mt-16 flex justify-center">
+            <div class="mt-16 flex justify-center w-full">
                 <div class="ripple-indicator"></div>
             </div>
         </div>
@@ -244,9 +253,8 @@
 
     <!-- 2. 收穫與感恩 (The Gain) -->
     <div id="view-gratitude" class="view-section">
-        <!-- 提高 z-index 確保 Home 鍵不被遮擋 -->
-        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/50 hover:text-white transition z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
-            <i class="fas fa-home text-lg"></i>
+        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 text-teal-200/30 hover:text-teal-100 transition tracking-widest text-sm z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
+            home
         </button>
 
         <div class="max-w-lg w-full mx-auto flex flex-col justify-center mt-8 md:mt-0">
@@ -263,10 +271,10 @@
                             <h3 class="text-xs text-teal-200/40 tracking-widest uppercase mb-4 font-light">溫暖的人事物</h3>
                             <div id="gratitude-list" class="space-y-1">
                                 <div class="flex items-start group">
-                                    <div class="w-6 flex-shrink-0 flex justify-center mt-[16px]">
+                                    <div class="w-6 flex-shrink-0 flex justify-center mt-[10px]">
                                         <div class="w-1.5 h-1.5 rounded-full bg-teal-500/60"></div>
                                     </div>
-                                    <textarea class="free-textarea auto-resize flex-1 py-1.5" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'gratitude-list', 'bg-teal-500/60')"></textarea>
+                                    <textarea class="free-textarea auto-resize flex-1 py-1" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'gratitude-list', 'bg-teal-500/60')"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -278,22 +286,22 @@
                             <h3 class="text-xs text-amber-200/40 tracking-widest uppercase mb-4 font-light">微小的收穫</h3>
                             <div id="gains-list" class="space-y-1">
                                 <div class="flex items-start group">
-                                    <div class="w-6 flex-shrink-0 flex justify-center mt-[16px]">
+                                    <div class="w-6 flex-shrink-0 flex justify-center mt-[10px]">
                                         <div class="w-1.5 h-1.5 rounded-full bg-amber-500/60"></div>
                                     </div>
-                                    <textarea class="free-textarea auto-resize flex-1 py-1.5" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'gains-list', 'bg-amber-500/60')"></textarea>
+                                    <textarea class="free-textarea auto-resize flex-1 py-1" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'gains-list', 'bg-amber-500/60')"></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <button id="btn-submit-gratitude" onclick="submitGratitude()" class="mt-8 px-10 py-3 rounded-full border border-teal-500/30 text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm mx-auto flex items-center justify-center min-w-[160px]">
+                <button id="btn-submit-gratitude" onclick="submitGratitude()" class="mt-8 px-10 py-3 rounded-full border border-transparent text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm mx-auto flex items-center justify-center min-w-[160px]">
                     <span class="btn-text">沉澱</span>
                 </button>
             </div>
 
-            <!-- AI Feedback Section (極簡化並支援全範圍點擊) -->
+            <!-- AI Feedback Section -->
             <div id="gratitude-feedback" class="hidden mt-8 flex-col items-center justify-center w-full min-h-[40vh] cursor-pointer" onclick="goToView('view-tomorrow')">
                 <p class="text-teal-100 leading-relaxed font-light text-xl md:text-2xl tracking-wide px-4 text-center" id="gratitude-ai-content" style="text-shadow: 0 0 20px rgba(20,184,166,0.2);"></p>
                 <div class="mt-16 flex justify-center w-full">
@@ -305,8 +313,8 @@
 
     <!-- 3. 明日預備 (The Setup) -->
     <div id="view-tomorrow" class="view-section">
-        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/50 hover:text-white transition z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
-            <i class="fas fa-home text-lg"></i>
+        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 text-teal-200/30 hover:text-teal-100 transition tracking-widest text-sm z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
+            home
         </button>
 
         <div class="max-w-md w-full mx-auto mt-8 md:mt-0">
@@ -321,28 +329,24 @@
                 <div class="glass-card p-6 sm:p-8">
                     <div id="tomorrow-list" class="space-y-1">
                         <div class="flex items-start group">
-                            <div class="w-6 flex-shrink-0 flex justify-center mt-[16px]">
+                            <div class="w-6 flex-shrink-0 flex justify-center mt-[10px]">
                                 <div class="w-1.5 h-1.5 rounded-full bg-orange-400/60"></div>
                             </div>
-                            <textarea class="free-textarea auto-resize flex-1 py-1.5" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'tomorrow-list', 'bg-orange-400/60')"></textarea>
+                            <textarea class="free-textarea auto-resize flex-1 py-1" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'tomorrow-list', 'bg-orange-400/60')"></textarea>
                         </div>
                     </div>
                 </div>
                 
-                <button id="btn-submit-tomorrow" onclick="submitTomorrow()" class="mt-8 px-10 py-3 rounded-full border border-amber-500/30 text-amber-200/60 hover:text-amber-100 hover:bg-amber-500/10 transition tracking-widest text-sm mx-auto flex items-center justify-center min-w-[160px]">
-                    <span class="btn-text">確認這個小承諾</span>
+                <button id="btn-submit-tomorrow" onclick="submitTomorrow()" class="mt-8 px-10 py-3 rounded-full border border-transparent text-amber-200/60 hover:text-amber-100 hover:bg-amber-500/10 transition tracking-widest text-sm mx-auto flex items-center justify-center min-w-[160px]">
+                    <span class="btn-text">Have a Nice Day</span>
                 </button>
             </div>
 
             <!-- AI Feedback Section -->
             <div id="tomorrow-feedback" class="hidden mt-8 flex-col items-center justify-center w-full min-h-[40vh] cursor-pointer" onclick="goToView('view-camera')">
-                <!-- 復盤使用者的輸入內容 -->
                 <div class="mb-8 flex flex-col items-center text-amber-200/60 font-light space-y-3" id="tomorrow-recap-content">
-                    <!-- JS 動態寫入 -->
                 </div>
-                <!-- 柔和的分隔線 -->
                 <div class="w-12 h-px bg-amber-500/30 mb-8"></div>
-                <!-- AI 回饋 -->
                 <p class="text-amber-100 leading-relaxed font-light text-xl md:text-2xl tracking-wide px-4 text-center" id="tomorrow-ai-content" style="text-shadow: 0 0 20px rgba(245,158,11,0.2);"></p>
                 <div class="mt-16 flex justify-center w-full">
                     <div class="ripple-indicator"></div>
@@ -353,8 +357,8 @@
 
     <!-- 4. 自我連結 (Self-Connection) -->
     <div id="view-camera" class="view-section">
-        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/50 hover:text-white transition z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
-            <i class="fas fa-home text-lg"></i>
+        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 text-teal-200/30 hover:text-teal-100 transition tracking-widest text-sm z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
+            home
         </button>
 
         <div class="max-w-md w-full mx-auto flex flex-col items-center mt-8 md:mt-0">
@@ -368,8 +372,7 @@
                     <video id="camera-video" autoplay playsinline class="hidden absolute inset-0 w-full h-full object-cover" style="transform: scaleX(-1);"></video>
                     <img id="photo-preview" class="hidden absolute inset-0 w-full h-full object-cover" alt="Your smile">
                     <div id="camera-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-teal-100/40">
-                        <i class="fas fa-camera text-4xl mb-4"></i>
-                        <p class="text-sm tracking-wider">等待開啟相機</p>
+                        <p class="text-xl font-light tracking-widest">smile :)</p>
                     </div>
                 </div>
             </div>
@@ -377,8 +380,8 @@
             <div class="w-full space-y-4 flex flex-col items-center">
                 <!-- 尚未開啟相機時的按鈕 -->
                 <div id="camera-init-controls" class="w-full space-y-4 flex flex-col items-center">
-                    <button id="btn-start-camera" onclick="startCamera()" class="px-10 py-3 rounded-full border border-teal-500/30 text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center w-full max-w-[280px]">
-                        <span class="btn-text"><i class="fas fa-video mr-2"></i> 記錄今天的自己</span>
+                    <button id="btn-start-camera" onclick="startCamera()" class="px-10 py-3 rounded-full border border-transparent text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center w-full max-w-[280px]">
+                        <span class="btn-text">記錄今天的自己</span>
                     </button>
                     <button onclick="skipCamera()" class="text-teal-200/30 hover:text-teal-100 text-xs py-2 tracking-widest transition uppercase">
                         skip
@@ -387,11 +390,11 @@
                 
                 <!-- 開啟相機後的控制項 -->
                 <div id="camera-controls" class="hidden w-full flex-col items-center space-y-4">
-                    <button id="btn-take-photo" onclick="takePhoto()" class="px-10 py-3 rounded-full border border-teal-500/30 text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center w-full max-w-[280px]">
+                    <button id="btn-take-photo" onclick="takePhoto()" class="px-10 py-3 rounded-full border border-transparent text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center w-full max-w-[280px]">
                         <span class="btn-text"><i class="fas fa-camera mr-2"></i> 拍下這個笑容</span>
                     </button>
                     <div class="flex items-center space-x-6 pt-2">
-                        <button onclick="savePhotoAndContinue()" id="btn-save-photo" class="hidden px-8 py-2.5 rounded-full border border-teal-500/30 text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center">
+                        <button onclick="savePhotoAndContinue()" id="btn-save-photo" class="hidden px-8 py-2.5 rounded-full border border-transparent text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center">
                             <span class="btn-text">儲存到日記</span>
                         </button>
                         <button onclick="skipCamera()" id="btn-skip-photo" class="text-teal-200/30 hover:text-teal-100 text-xs py-2 tracking-widest uppercase mt-1">skip</button>
@@ -403,31 +406,27 @@
 
     <!-- 5. 數位排毒 (Digital Detox) -->
     <div id="view-detox" class="view-section text-center">
-        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/50 hover:text-white transition z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
-            <i class="fas fa-home text-lg"></i>
+        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 text-teal-200/30 hover:text-teal-100 transition tracking-widest text-sm z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
+            home
         </button>
 
         <div class="max-w-md w-full mx-auto mt-8 md:mt-0">
-            <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-4">切斷外界喧囂</h2>
+            <div class="text-4xl text-teal-300/60 mb-8 ai-pulse font-light tracking-widest italic">Zzz</div>
+            <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-4">飛航時間</h2>
             <p class="text-sm text-teal-200/60 font-light tracking-wide leading-relaxed mb-10">
                 準備好進入夢鄉了嗎？<br>讓我們切斷外界的干擾，<br>把接下來的時間完全留給自己。
             </p>
 
-            <label class="glass-card flex items-center justify-center space-x-4 cursor-pointer p-5 w-full max-w-[300px] mx-auto transition hover:bg-white/10 group">
-                <input type="checkbox" id="detox-check" class="w-5 h-5 rounded text-teal-500 bg-black/20 border-white/20 focus:ring-teal-500" onchange="toggleDetoxButton()">
-                <span class="text-base tracking-wider text-teal-50 group-hover:text-white transition">我已開啟飛航或睡眠模式</span>
-            </label>
-
-            <button id="btn-detox-next" onclick="goToView('view-meditation')" class="mt-12 px-10 py-3 rounded-full border border-teal-500/30 text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center w-full max-w-[300px] mx-auto disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-teal-500/30 disabled:hover:text-teal-200/60" disabled>
-                <span class="btn-text">我準備好了</span>
+            <button id="btn-detox-next" onclick="goToView('view-meditation')" class="mt-12 px-10 py-3 rounded-full border border-transparent text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center w-full max-w-[300px] mx-auto">
+                <span class="btn-text">已開啟飛航或睡眠模式</span>
             </button>
         </div>
     </div>
 
     <!-- 6. 冥想與結束 (Meditation & Sleep) -->
     <div id="view-meditation" class="view-section text-center">
-        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/50 hover:text-white transition z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
-            <i class="fas fa-home text-lg"></i>
+        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 text-teal-200/30 hover:text-teal-100 transition tracking-widest text-sm z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
+            home
         </button>
 
         <div id="meditation-setup" class="max-w-md w-full mx-auto z-10 mt-8 md:mt-0">
@@ -435,10 +434,10 @@
             <p class="text-sm text-teal-200/60 font-light tracking-wide mb-12">跟著畫面光暈深呼吸，放空思緒。</p>
             
             <div class="space-y-4 w-full flex flex-col items-center">
-                <button onclick="startMeditation(5)" class="px-10 py-3 rounded-full border border-teal-500/30 text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center w-full max-w-[280px]">
+                <button onclick="startMeditation(5)" class="px-10 py-3 rounded-full border border-transparent text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center w-full max-w-[280px]">
                     <span class="btn-text">冥想 5 分鐘</span>
                 </button>
-                <button onclick="startMeditation(20)" class="px-10 py-3 rounded-full border border-teal-400/40 text-teal-100 hover:text-white hover:bg-teal-400/20 transition tracking-widest text-sm flex items-center justify-center w-full max-w-[280px]">
+                <button onclick="startMeditation(20)" class="px-10 py-3 rounded-full border border-transparent text-teal-100 hover:text-white hover:bg-teal-400/20 transition tracking-widest text-sm flex items-center justify-center w-full max-w-[280px]">
                     <span class="btn-text">冥想 20 分鐘</span>
                 </button>
                 <button onclick="finishJourney()" class="text-teal-200/30 hover:text-teal-100 text-xs py-4 tracking-widest transition uppercase">直接去睡覺</button>
@@ -452,7 +451,7 @@
 
             <div class="breathing-circle mb-16"></div>
             <div id="timer-display" class="text-6xl font-light text-teal-50 tracking-[0.1em] mb-12" style="text-shadow: 0 0 20px rgba(20,184,166,0.3);">05:00</div>
-            <button onclick="finishJourney()" class="px-10 py-3 rounded-full border border-teal-500/30 text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center">
+            <button onclick="finishJourney()" class="px-10 py-3 rounded-full border border-transparent text-teal-200/60 hover:text-teal-100 hover:bg-teal-500/10 transition tracking-widest text-sm flex items-center justify-center">
                 <span class="btn-text">結束冥想</span>
             </button>
         </div>
@@ -462,7 +461,7 @@
     <div id="view-goodnight" class="view-section text-center cursor-pointer" onclick="fadeToSplash()">
         <div class="glass-orb bg-teal-900/40 w-[40rem] h-[40rem] top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2" style="animation: none;"></div>
         <h1 class="text-4xl font-light tracking-[0.2em] text-teal-100 mb-6" style="animation: pulse-soft 6s infinite;">晚安</h1>
-        <p class="text-teal-200/40 text-sm font-light tracking-widest">世界已安靜，祝你做個好夢。</p>
+        <p class="text-teal-200/40 text-sm font-light tracking-widest">今天也做的很好，祝你做個好夢。</p>
         <div class="mt-20 flex justify-center w-full">
             <div class="ripple-indicator"></div>
         </div>
@@ -498,7 +497,7 @@
 
     <!-- 日曆模式：單日紀錄彈窗 -->
     <div id="day-modal" class="fixed inset-0 z-50 hidden bg-[#131c1a]/90 backdrop-blur-sm flex-col items-center justify-start pt-20 px-4 pb-10">
-        <div class="w-full max-w-lg bg-black/40 border border-teal-500/30 rounded-3xl p-6 flex flex-col max-h-full shadow-2xl relative">
+        <div class="w-full max-w-lg bg-black/40 border border-teal-500/30 rounded-2xl p-6 flex flex-col max-h-full shadow-2xl relative">
             <div class="flex justify-between items-center mb-6 pb-3 border-b border-white/10">
                 <h3 id="day-modal-title" class="text-teal-50 tracking-wider text-lg font-medium"><i class="far fa-calendar-alt mr-2 text-teal-300/80"></i></h3>
                 <button onclick="closeDayModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-teal-200/60 hover:text-white hover:bg-rose-500/20 transition">
@@ -511,7 +510,7 @@
         </div>
     </div>
 
-    <!-- 全局確認彈窗 (取代原生的 confirm，解決 iframe 阻擋問題) -->
+    <!-- 全局確認彈窗 -->
     <div id="global-confirm-modal" class="fixed inset-0 z-[200] hidden bg-[#131c1a]/80 backdrop-blur-sm flex-col items-center justify-center px-4">
         <div class="glass-card p-6 md:p-8 max-w-sm w-full text-center border border-teal-500/30">
             <h3 id="confirm-modal-title" class="text-xl font-medium text-teal-50 tracking-wider mb-3">提示</h3>
@@ -524,6 +523,14 @@
     </div>
 
     <script>
+        // 啟動畫面淡出效果
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const overlay = document.getElementById('startup-overlay');
+                if(overlay) overlay.style.opacity = '0';
+            }, 100);
+        });
+
         // --- 狀態管理 ---
         let currentEntry = {
             id: null,
@@ -580,7 +587,7 @@
             closeConfirmModal();
         }
 
-        // --- 取消並返回首頁功能 (修復事件穿透與彈窗阻擋) ---
+        // --- 取消並返回首頁功能 ---
         window.cancelJourney = function(event) {
             if (event) event.stopPropagation();
             showConfirmModal(
@@ -596,31 +603,22 @@
 
         // --- 晚安後平滑返回首頁 ---
         function fadeToSplash() {
-            // 創造一個黑色的遮罩並設定原生的平滑過渡動畫
             const overlay = document.createElement('div');
             overlay.style.position = 'fixed';
             overlay.style.inset = '0';
             overlay.style.backgroundColor = '#000000';
             overlay.style.zIndex = '9999';
             overlay.style.opacity = '0';
-            overlay.style.transition = 'opacity 3s ease-in-out'; // 設定 3 秒的平滑漸變
+            overlay.style.transition = 'opacity 3s ease-in-out'; 
             overlay.style.pointerEvents = 'none';
             document.body.appendChild(overlay);
             
-            // 強制瀏覽器重繪，讓 transition 生效
             void overlay.offsetWidth;
-            
-            // 1. 畫面開始慢慢變暗
             overlay.style.opacity = '1';
             
-            // 2. 等待 3 秒全黑後，切換視圖，再慢慢變亮
             setTimeout(() => {
                 goToView('view-splash');
-                
-                // 畫面全黑時切換了首頁，接著讓黑色遮罩慢慢淡出 (變亮)
                 overlay.style.opacity = '0';
-                
-                // 3. 等待淡出動畫結束後，將遮罩元件移除
                 setTimeout(() => overlay.remove(), 3000);
             }, 3000); 
         }
@@ -630,23 +628,17 @@
             currentEntry = { id: null, date: null, gratitude: [], gains: [], tomorrow: "", photoData: null };
             
             document.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
-            resetLists(); // 重置自由筆記本區塊
+            resetLists(); 
             
-            // 重置感恩頁面
             document.getElementById('gratitude-wrapper').classList.remove('hidden');
             const gFb = document.getElementById('gratitude-feedback');
             gFb.classList.add('hidden');
             gFb.classList.remove('flex');
             
-            // 重置明日頁面
             document.getElementById('tomorrow-wrapper').classList.remove('hidden');
             const tFb = document.getElementById('tomorrow-feedback');
             tFb.classList.add('hidden');
             tFb.classList.remove('flex');
-            
-            const detoxCheck = document.getElementById('detox-check');
-            if (detoxCheck) detoxCheck.checked = false;
-            toggleDetoxButton();
             
             document.getElementById('meditation-setup').classList.remove('hidden');
             document.getElementById('meditation-active').classList.add('hidden');
@@ -671,14 +663,12 @@
 
             const btnSubmitGratitude = document.getElementById('btn-submit-gratitude');
             if(btnSubmitGratitude) {
-                btnSubmitGratitude.querySelector('.btn-text').innerText = '沉澱';
                 btnSubmitGratitude.disabled = false;
                 btnSubmitGratitude.classList.remove('btn-loading-state', 'text-teal-400');
                 btnSubmitGratitude.classList.add('text-teal-200/60');
             }
             const btnSubmitTomorrow = document.getElementById('btn-submit-tomorrow');
             if(btnSubmitTomorrow) {
-                btnSubmitTomorrow.querySelector('.btn-text').innerText = '確認這個小承諾';
                 btnSubmitTomorrow.disabled = false;
                 btnSubmitTomorrow.classList.remove('btn-loading-state', 'text-amber-400');
                 btnSubmitTomorrow.classList.add('text-amber-200/60');
@@ -696,14 +686,11 @@
             const row = textarea.closest('.flex');
             const list = document.getElementById(listId);
 
-            // 防止中文輸入法組字時觸發換行
             if (e.isComposing) return;
 
-            // 按下 Enter 換行並產生新點點
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 
-                // 擷取游標前後的文字，避免自動複製
                 const cursorPosition = textarea.selectionStart;
                 const textBefore = textarea.value.substring(0, cursorPosition);
                 const textAfter = textarea.value.substring(cursorPosition);
@@ -714,10 +701,10 @@
                 const newRow = document.createElement('div');
                 newRow.className = 'flex items-start group';
                 newRow.innerHTML = `
-                    <div class="w-6 flex-shrink-0 flex justify-center mt-[16px]">
+                    <div class="w-6 flex-shrink-0 flex justify-center mt-[10px]">
                         <div class="w-1.5 h-1.5 rounded-full ${dotColorClass}"></div>
                     </div>
-                    <textarea class="free-textarea auto-resize flex-1 py-1.5" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, '${listId}', '${dotColorClass}')"></textarea>
+                    <textarea class="free-textarea auto-resize flex-1 py-1" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, '${listId}', '${dotColorClass}')"></textarea>
                 `;
                 row.after(newRow);
                 
@@ -728,7 +715,6 @@
                 newTextarea.selectionStart = 0;
                 newTextarea.selectionEnd = 0;
             } 
-            // 若當前為空，按下 Backspace 刪除該行並退回上一行
             else if (e.key === 'Backspace' && textarea.value === '') {
                 const prevRow = row.previousElementSibling;
                 if (prevRow) {
@@ -736,7 +722,6 @@
                     row.remove();
                     const prevTextarea = prevRow.querySelector('textarea');
                     prevTextarea.focus();
-                    // 將游標移到上一行最後面
                     prevTextarea.selectionStart = prevTextarea.value.length;
                     prevTextarea.selectionEnd = prevTextarea.value.length;
                 }
@@ -748,10 +733,10 @@
             if (gratList) {
                 gratList.innerHTML = `
                     <div class="flex items-start group">
-                        <div class="w-6 flex-shrink-0 flex justify-center mt-[16px]">
+                        <div class="w-6 flex-shrink-0 flex justify-center mt-[10px]">
                             <div class="w-1.5 h-1.5 rounded-full bg-teal-500/60"></div>
                         </div>
-                        <textarea class="free-textarea auto-resize flex-1 py-1.5" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'gratitude-list', 'bg-teal-500/60')"></textarea>
+                        <textarea class="free-textarea auto-resize flex-1 py-1" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'gratitude-list', 'bg-teal-500/60')"></textarea>
                     </div>
                 `;
             }
@@ -759,10 +744,10 @@
             if (gainsList) {
                 gainsList.innerHTML = `
                     <div class="flex items-start group">
-                        <div class="w-6 flex-shrink-0 flex justify-center mt-[16px]">
+                        <div class="w-6 flex-shrink-0 flex justify-center mt-[10px]">
                             <div class="w-1.5 h-1.5 rounded-full bg-amber-500/60"></div>
                         </div>
-                        <textarea class="free-textarea auto-resize flex-1 py-1.5" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'gains-list', 'bg-amber-500/60')"></textarea>
+                        <textarea class="free-textarea auto-resize flex-1 py-1" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'gains-list', 'bg-amber-500/60')"></textarea>
                     </div>
                 `;
             }
@@ -770,10 +755,10 @@
             if (tomorrowList) {
                 tomorrowList.innerHTML = `
                     <div class="flex items-start group">
-                        <div class="w-6 flex-shrink-0 flex justify-center mt-[16px]">
+                        <div class="w-6 flex-shrink-0 flex justify-center mt-[10px]">
                             <div class="w-1.5 h-1.5 rounded-full bg-orange-400/60"></div>
                         </div>
-                        <textarea class="free-textarea auto-resize flex-1 py-1.5" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'tomorrow-list', 'bg-orange-400/60')"></textarea>
+                        <textarea class="free-textarea auto-resize flex-1 py-1" rows="1" oninput="autoResize(this)" onkeydown="handleListKeydown(event, 'tomorrow-list', 'bg-orange-400/60')"></textarea>
                     </div>
                 `;
             }
@@ -881,9 +866,6 @@
             if (viewId === 'view-goodnight') {
                 orbs.style.opacity = '0';
                 document.body.style.backgroundColor = '#050a09'; 
-            } else if (viewId === 'view-meditation' || viewId === 'view-detox') {
-                orbs.style.opacity = '0.3';
-                document.body.style.backgroundColor = '#0a100f';
             } else {
                 orbs.style.opacity = '1';
                 document.body.style.backgroundColor = '#131c1a'; 
@@ -899,10 +881,7 @@
         // --- 步驟二：感恩與收穫 ---
         function submitGratitude() {
             const btn = document.getElementById('btn-submit-gratitude');
-            const btnText = btn.querySelector('.btn-text');
-            const originalText = btnText.innerText;
 
-            // 從自由筆記本中抓取所有非空白的內容
             const gratitudes = Array.from(document.querySelectorAll('#gratitude-list textarea'))
                                     .map(t => t.value.trim())
                                     .filter(v => v !== "");
@@ -913,7 +892,7 @@
             currentEntry.gratitude = gratitudes;
             currentEntry.gains = gains;
 
-            btnText.innerHTML = '存檔中...';
+            // 僅改變按鈕狀態為轉動光暈，文字不變
             btn.classList.add('btn-loading-state', 'text-teal-400');
             btn.classList.remove('text-teal-200/60');
             btn.disabled = true;
@@ -923,13 +902,12 @@
                 
                 const fb = document.getElementById('gratitude-feedback');
                 fb.classList.remove('hidden');
-                fb.classList.add('flex'); // 顯示 Flex-Col 排版
-                fb.style.animation = "slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards";
+                fb.classList.add('flex'); 
+                fb.style.animation = "slideUpFade 2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards";
                 
                 const randomRes = gratitudeResponses[Math.floor(Math.random() * gratitudeResponses.length)];
                 document.getElementById('gratitude-ai-content').innerText = randomRes;
                 
-                btnText.innerHTML = originalText;
                 btn.classList.remove('btn-loading-state', 'text-teal-400');
                 btn.classList.add('text-teal-200/60');
                 btn.disabled = false;
@@ -939,17 +917,13 @@
         // --- 步驟三：明日預備 ---
         function submitTomorrow() {
             const btn = document.getElementById('btn-submit-tomorrow');
-            const btnText = btn.querySelector('.btn-text');
-            const originalText = btnText.innerText;
             
-            // 從自由筆記本中抓取所有非空白的內容
             const tomorrows = Array.from(document.querySelectorAll('#tomorrow-list textarea'))
                                    .map(t => t.value.trim())
                                    .filter(v => v !== "");
             
             currentEntry.tomorrow = tomorrows;
 
-            btnText.innerHTML = '存檔中...';
             btn.classList.add('btn-loading-state', 'text-amber-400');
             btn.classList.remove('text-amber-200/60');
             btn.disabled = true;
@@ -960,16 +934,14 @@
                 const fb = document.getElementById('tomorrow-feedback');
                 fb.classList.remove('hidden');
                 fb.classList.add('flex');
-                fb.style.animation = "slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards";
+                fb.style.animation = "slideUpFade 2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards";
 
-                // 渲染使用者剛才輸入的內容作為復盤
                 const recapHtml = tomorrows.map(t => `<p class="tracking-widest">「${t}」</p>`).join('');
                 document.getElementById('tomorrow-recap-content').innerHTML = recapHtml;
 
                 const randomRes = tomorrowResponses[Math.floor(Math.random() * tomorrowResponses.length)];
                 document.getElementById('tomorrow-ai-content').innerText = randomRes;
 
-                btnText.innerHTML = originalText;
                 btn.classList.remove('btn-loading-state', 'text-amber-400');
                 btn.classList.add('text-amber-200/60');
                 btn.disabled = false;
@@ -1137,7 +1109,7 @@
             const now = new Date();
             currentEntry.date = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
 
-            if(currentEntry.gratitude.length > 0 || currentEntry.gains.length > 0 || currentEntry.tomorrow !== "") {
+            if(currentEntry.gratitude.length > 0 || currentEntry.gains.length > 0 || currentEntry.tomorrow.length > 0) {
                 let history = JSON.parse(localStorage.getItem('soulJournalHistory_v2')) || [];
                 history.unshift(currentEntry);
                 
@@ -1162,14 +1134,12 @@
         function setHistoryMode(mode) {
             historyMode = mode;
             
-            // 更新按鈕樣式
             const activeClass = 'px-5 py-1.5 rounded-full bg-teal-500/20 text-teal-100 text-sm border border-teal-500/30 transition shadow-sm';
             const inactiveClass = 'px-5 py-1.5 rounded-full text-teal-200/50 text-sm border border-transparent hover:text-teal-100 transition';
             
             document.getElementById('btn-mode-list').className = mode === 'list' ? activeClass : inactiveClass;
             document.getElementById('btn-mode-calendar').className = mode === 'calendar' ? activeClass : inactiveClass;
 
-            // 切換容器顯示
             document.getElementById('history-list-container').classList.toggle('hidden', mode !== 'list');
             document.getElementById('history-calendar-container').classList.toggle('hidden', mode !== 'calendar');
             document.getElementById('history-calendar-container').classList.toggle('flex', mode === 'calendar');
@@ -1181,7 +1151,6 @@
             }
         }
 
-        // 生成單篇卡片的 HTML
         function getEntryCardHTML(entry, showFullDate = true) {
             const displayDate = showFullDate ? entry.date : entry.date.split(' ')[1];
             const dateIcon = showFullDate ? 'fa-calendar-alt' : 'fa-clock';
@@ -1189,7 +1158,7 @@
             let html = `<div class="glass-card p-6 border border-white/5 mb-6">
                 <div class="border-b border-white/10 pb-3 mb-5 flex justify-between items-end">
                     <span class="text-teal-200 font-medium tracking-wider text-sm"><i class="far ${dateIcon} mr-2 opacity-70"></i>${displayDate}</span>
-                    <button onclick="deleteRecord(${entry.id})" class="text-teal-200/40 hover:text-rose-400 transition" title="刪除紀錄">
+                    <button onclick="window.deleteRecord(${entry.id})" class="text-teal-200/40 hover:text-rose-400 transition" title="刪除紀錄">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
@@ -1211,7 +1180,6 @@
             if(entry.tomorrow && entry.tomorrow.length > 0) {
                 html += `<div><h4 class="text-xs text-orange-300/80 mb-2 tracking-wider"><i class="fas fa-sun text-[10px] mr-1"></i>明日的起點</h4>`;
                 
-                // 為了兼容舊版字串格式與新版陣列格式
                 if (Array.isArray(entry.tomorrow)) {
                     html += `<ul class="list-disc list-inside text-sm text-teal-50/90 space-y-1.5 font-light">`;
                     entry.tomorrow.forEach(i => html += `<li>${i}</li>`);
@@ -1235,7 +1203,6 @@
             return html;
         }
 
-        // 渲染列表模式
         function renderHistoryList() {
             const container = document.getElementById('history-list-container');
             let history = JSON.parse(localStorage.getItem('soulJournalHistory_v2')) || [];
@@ -1248,23 +1215,20 @@
             container.innerHTML = history.map(entry => getEntryCardHTML(entry, true)).join('');
         }
 
-        // 處理日曆月份切換
         function changeMonth(delta) {
             calMonth.setMonth(calMonth.getMonth() + delta);
             renderHistoryCalendar();
         }
 
-        // 渲染日曆模式
         function renderHistoryCalendar() {
             const container = document.getElementById('history-calendar-container');
             let history = JSON.parse(localStorage.getItem('soulJournalHistory_v2')) || [];
 
             const year = calMonth.getFullYear();
             const month = calMonth.getMonth();
-            const firstDay = new Date(year, month, 1).getDay(); // 0(Sun) - 6(Sat)
+            const firstDay = new Date(year, month, 1).getDay(); 
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            // 將歷史紀錄按日期分組
             const entriesByDay = {};
             history.forEach(entry => {
                 const [datePart, timePart] = entry.date.split(' ');
@@ -1276,7 +1240,6 @@
                 }
             });
 
-            // 建立日曆 HTML
             let html = `
                 <div class="flex justify-between items-center mb-6 px-4 bg-white/5 rounded-2xl py-2 border border-white/5">
                     <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full flex items-center justify-center text-teal-200/70 hover:bg-white/10 hover:text-white transition"><i class="fas fa-chevron-left"></i></button>
@@ -1289,17 +1252,14 @@
                 <div class="grid grid-cols-7 gap-2">
             `;
 
-            // 填充空白天數
             for (let i = 0; i < firstDay; i++) {
                 html += `<div></div>`;
             }
 
-            // 填充實際天數
             for (let d = 1; d <= daysInMonth; d++) {
                 const dayEntries = entriesByDay[d] || [];
                 
                 if (dayEntries.length > 0) {
-                    // 有紀錄：尋找有照片的紀錄作為縮圖
                     const entryWithPhoto = dayEntries.find(e => e.photoData);
                     let bgStyle = '';
                     let innerContent = '';
@@ -1307,7 +1267,6 @@
                     if (entryWithPhoto) {
                         bgStyle = `background-image: url(${entryWithPhoto.photoData}); background-size: cover; background-position: center;`;
                     } else {
-                        // 無照片時的預設背景 (漸層與葉子圖案)
                         bgStyle = `background: linear-gradient(135deg, rgba(20, 184, 166, 0.4), rgba(217, 119, 6, 0.2)); border: 1px solid rgba(255,255,255,0.1);`;
                         innerContent = `<i class="fas fa-leaf text-teal-100/50 text-xl"></i>`;
                     }
@@ -1320,7 +1279,6 @@
                         ${dayEntries.length > 1 ? `<div class="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm"></div>` : ''}
                     </div>`;
                 } else {
-                    // 無紀錄的空日期
                     html += `<div class="aspect-square rounded-xl flex items-center justify-center text-teal-100/20 text-sm font-light border border-white/5 bg-white/5">${d}</div>`;
                 }
             }
@@ -1328,7 +1286,6 @@
             container.innerHTML = html;
         }
 
-        // 打開日曆單日彈窗
         function openDayModal(y, m, d) {
             const dateStr = `${y}/${m.toString().padStart(2,'0')}/${d.toString().padStart(2,'0')}`;
             document.getElementById('day-modal-title').innerHTML = `<i class="far fa-calendar-alt mr-2 text-teal-300/80"></i>${dateStr}`;
@@ -1343,13 +1300,11 @@
             document.getElementById('day-modal').classList.add('flex');
         }
 
-        // 關閉日曆單日彈窗
         function closeDayModal() {
             document.getElementById('day-modal').classList.add('hidden');
             document.getElementById('day-modal').classList.remove('flex');
         }
 
-        // --- 刪除單筆紀錄 (修復 iframe 彈窗阻擋) ---
         window.deleteRecord = function(id) {
             showConfirmModal(
                 "刪除紀錄",
@@ -1360,12 +1315,10 @@
                     history = history.filter(entry => entry.id !== id);
                     localStorage.setItem('soulJournalHistory_v2', JSON.stringify(history));
                     
-                    // 根據當前模式重新渲染
                     if (historyMode === 'list') {
                         renderHistoryList();
                     } else {
                         renderHistoryCalendar();
-                        // 如果彈窗開著，需要更新彈窗內容或關閉它
                         const modal = document.getElementById('day-modal');
                         if (!modal.classList.contains('hidden')) {
                             const titleText = document.getElementById('day-modal-title').innerText.trim();
