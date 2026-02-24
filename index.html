@@ -24,20 +24,20 @@
             background: transparent;
         }
 
-        /* --- 全局光暈背景 --- */
+        /* --- 全局光暈背景 (加入呼吸燈效果) --- */
         .glass-orb {
             position: fixed;
             border-radius: 50%;
             filter: blur(90px);
             z-index: -1;
-            animation: float 12s infinite ease-in-out alternate;
+            animation: float 10s infinite ease-in-out alternate;
             pointer-events: none;
             transition: opacity 1.5s ease;
         }
         @keyframes float {
-            0% { transform: translateY(0px) scale(1) translateX(0px); }
-            50% { transform: translateY(-20px) scale(1.05) translateX(10px); }
-            100% { transform: translateY(-40px) scale(1.1) translateX(-10px); }
+            0% { transform: translateY(0px) scale(0.9) translateX(0px); opacity: 0.5; }
+            50% { transform: translateY(-20px) scale(1.1) translateX(10px); opacity: 0.9; }
+            100% { transform: translateY(-40px) scale(0.9) translateX(-10px); opacity: 0.5; }
         }
 
         /* --- 視圖切換 --- */
@@ -140,7 +140,31 @@
             50% { transform: scale(1.5); opacity: 0.8; }
         }
 
-        /* --- 相機元件已透過 Tailwind 的 absolute inset 處理，移除舊版固定尺寸 --- */
+        /* --- 漣漪指示動畫 (淡化為光暈感) --- */
+        .ripple-indicator {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            position: relative;
+            margin: 0 auto;
+        }
+        .ripple-indicator::before, .ripple-indicator::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background-color: rgba(20, 184, 166, 0.3);
+            filter: blur(8px);
+            animation: ripple-soft 3s infinite cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .ripple-indicator::after {
+            animation-delay: 1.5s;
+        }
+        @keyframes ripple-soft {
+            0% { transform: scale(0.5); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+
     </style>
 </head>
 <body>
@@ -153,25 +177,28 @@
 
     <!-- 1. 啟動與定錨 (The Anchor) -->
     <div id="view-splash" class="view-section active cursor-pointer" onclick="goToView('view-gratitude')">
-        <button onclick="event.stopPropagation(); showHistory();" class="absolute top-6 right-6 text-teal-200/50 hover:text-teal-100 transition flex items-center bg-white/5 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md">
+        <button onclick="event.stopPropagation(); showHistory();" class="absolute top-6 right-6 text-teal-200/50 hover:text-teal-100 transition flex items-center bg-white/5 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md z-[100]">
             <i class="fas fa-book-journal-whills text-lg"></i> <span class="text-sm ml-2 tracking-wider">回顧日記</span>
         </button>
-        <div class="text-center space-y-10 pointer-events-none">
-            <div class="w-32 h-32 mx-auto rounded-full bg-teal-900/30 flex items-center justify-center border border-teal-500/20 shadow-[0_0_50px_rgba(20,184,166,0.2)]">
-                <i class="fas fa-moon text-4xl text-teal-200 opacity-80"></i>
-            </div>
+        <div class="text-center space-y-10 pointer-events-none mt-16">
             <p class="text-xl md:text-2xl font-light tracking-widest text-teal-50 leading-relaxed" style="animation: pulse-soft 4s infinite;">
                 無條件愛自己、肯定自己<br>無論自己是什麼樣子。
             </p>
-            <p class="text-sm text-teal-200/40 mt-12 tracking-widest">輕觸螢幕任意處開始</p>
+            <div class="mt-16 flex justify-center">
+                <div class="ripple-indicator"></div>
+            </div>
         </div>
     </div>
 
     <!-- 2. 收穫與感恩 (The Gain) -->
     <div id="view-gratitude" class="view-section">
-        <div class="max-w-lg w-full mx-auto flex flex-col justify-center">
+        <!-- 提高 z-index 確保 Home 鍵不被遮擋 -->
+        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/50 hover:text-white transition z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
+            <i class="fas fa-home text-lg"></i>
+        </button>
+
+        <div class="max-w-lg w-full mx-auto flex flex-col justify-center mt-8 md:mt-0">
             <div class="text-center mb-8">
-                <i class="fas fa-droplet text-teal-300 text-xl mb-4 opacity-80"></i>
                 <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-2">感恩與收穫</h2>
                 <p class="text-sm text-teal-200/60 font-light tracking-wide">無條件愛自己、肯定自己</p>
             </div>
@@ -180,12 +207,7 @@
                 <div class="space-y-8">
                     <!-- Section 1 -->
                     <div>
-                        <div class="flex items-center space-x-3 mb-5">
-                            <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center border border-teal-500/30">
-                                <i class="fas fa-heart text-teal-300 text-xs"></i>
-                            </div>
-                            <h3 class="text-base text-teal-100 font-medium">三件溫暖的人事物</h3>
-                        </div>
+                        <h3 class="text-base text-teal-100 font-medium mb-5 tracking-wider">三件溫暖的人事物</h3>
                         <div class="space-y-3">
                             <input type="text" id="g-1" class="glass-input placeholder-teal-200/30" placeholder="1. 感謝...">
                             <input type="text" id="g-2" class="glass-input placeholder-teal-200/30" placeholder="2. 感謝...">
@@ -197,12 +219,7 @@
 
                     <!-- Section 2 -->
                     <div>
-                        <div class="flex items-center space-x-3 mb-5">
-                            <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
-                                <i class="fas fa-seedling text-amber-300 text-xs"></i>
-                            </div>
-                            <h3 class="text-base text-amber-100 font-medium">三個微小的改變與收穫</h3>
-                        </div>
+                        <h3 class="text-base text-amber-100 font-medium mb-5 tracking-wider">三個微小的改變與收穫</h3>
                         <div class="space-y-3">
                             <input type="text" id="w-1" class="glass-input placeholder-amber-200/30" placeholder="1. 我今天完成了/學到了...">
                             <input type="text" id="w-2" class="glass-input placeholder-amber-200/30" placeholder="2. 我今天完成了/學到了...">
@@ -216,20 +233,24 @@
                 </button>
             </div>
 
-            <!-- AI Feedback Section -->
-            <div id="gratitude-feedback" class="hidden mt-8 text-center glass-card p-6">
-                <i class="fas fa-moon text-teal-300 text-2xl mb-4 ai-pulse"></i>
-                <p class="text-teal-100/90 leading-relaxed font-light text-sm" id="gratitude-ai-content"></p>
-                <button onclick="goToView('view-tomorrow')" class="btn-glass mt-6 bg-transparent border border-teal-500/50 shadow-none hover:bg-teal-500/20">繼續前進</button>
+            <!-- AI Feedback Section (極簡化並支援全範圍點擊) -->
+            <div id="gratitude-feedback" class="hidden mt-8 flex-col items-center justify-center w-full min-h-[40vh] cursor-pointer" onclick="goToView('view-tomorrow')">
+                <p class="text-teal-100 leading-relaxed font-light text-xl md:text-2xl tracking-wide px-4 text-center" id="gratitude-ai-content" style="text-shadow: 0 0 20px rgba(20,184,166,0.2);"></p>
+                <div class="mt-16 flex justify-center w-full">
+                    <div class="ripple-indicator"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- 3. 明日預備 (The Setup) -->
     <div id="view-tomorrow" class="view-section">
-        <div class="max-w-md w-full mx-auto">
+        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/50 hover:text-white transition z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
+            <i class="fas fa-home text-lg"></i>
+        </button>
+
+        <div class="max-w-md w-full mx-auto mt-8 md:mt-0">
             <div class="text-center mb-8">
-                <i class="fas fa-sun text-amber-300 text-3xl mb-4 opacity-80 ai-pulse"></i>
                 <h2 class="text-2xl font-light text-amber-50 tracking-wider mb-3">明日的微光</h2>
                 <p class="text-sm text-amber-100/60 font-light tracking-wide leading-relaxed">
                     明天起床洗臉刷牙後，<br>你想為自己做的第一件事是什麼？<br>
@@ -244,16 +265,23 @@
                 </button>
             </div>
 
-            <div id="tomorrow-feedback" class="hidden mt-8 text-center glass-card p-6">
-                <p class="text-amber-100/90 leading-relaxed font-light text-sm" id="tomorrow-ai-content"></p>
-                <button onclick="goToView('view-camera')" class="btn-glass mt-6 bg-transparent border border-amber-500/50 shadow-none hover:bg-amber-500/20">準備好了</button>
+            <!-- AI Feedback Section -->
+            <div id="tomorrow-feedback" class="hidden mt-8 flex-col items-center justify-center w-full min-h-[40vh] cursor-pointer" onclick="goToView('view-camera')">
+                <p class="text-amber-100 leading-relaxed font-light text-xl md:text-2xl tracking-wide px-4 text-center" id="tomorrow-ai-content" style="text-shadow: 0 0 20px rgba(245,158,11,0.2);"></p>
+                <div class="mt-16 flex justify-center w-full">
+                    <div class="ripple-indicator"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- 4. 自我連結 (Self-Connection) -->
     <div id="view-camera" class="view-section">
-        <div class="max-w-md w-full mx-auto flex flex-col items-center">
+        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/50 hover:text-white transition z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
+            <i class="fas fa-home text-lg"></i>
+        </button>
+
+        <div class="max-w-md w-full mx-auto flex flex-col items-center mt-8 md:mt-0">
             <div class="text-center mb-8">
                 <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-3">看看自己</h2>
                 <p class="text-sm text-teal-200/60 font-light tracking-wide">今天的你辛苦了。<br>看著自己，給自己一個微笑吧。</p>
@@ -297,7 +325,11 @@
 
     <!-- 5. 數位排毒 (Digital Detox) -->
     <div id="view-detox" class="view-section text-center">
-        <div class="max-w-md w-full mx-auto">
+        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/50 hover:text-white transition z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
+            <i class="fas fa-home text-lg"></i>
+        </button>
+
+        <div class="max-w-md w-full mx-auto mt-8 md:mt-0">
             <i class="fas fa-mobile-screen-button text-4xl text-teal-300/60 mb-8 ai-pulse"></i>
             <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-4">切斷外界喧囂</h2>
             <p class="text-sm text-teal-200/60 font-light tracking-wide leading-relaxed mb-10">
@@ -317,8 +349,11 @@
 
     <!-- 6. 冥想與結束 (Meditation & Sleep) -->
     <div id="view-meditation" class="view-section text-center">
-        <div id="meditation-setup" class="max-w-md w-full mx-auto z-10">
-            <i class="fas fa-wind text-teal-300/60 text-3xl mb-6"></i>
+        <button onclick="cancelJourney(event)" class="absolute top-6 left-6 w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/50 hover:text-white transition z-[100] cursor-pointer" title="放棄紀錄並回到首頁">
+            <i class="fas fa-home text-lg"></i>
+        </button>
+
+        <div id="meditation-setup" class="max-w-md w-full mx-auto z-10 mt-8 md:mt-0">
             <h2 class="text-2xl font-light text-teal-50 tracking-wider mb-4">睡前沉澱</h2>
             <p class="text-sm text-teal-200/60 font-light tracking-wide mb-12">跟著畫面光暈深呼吸，放空思緒。</p>
             
@@ -342,30 +377,67 @@
         </div>
     </div>
 
-    <!-- 晚安畫面 -->
-    <div id="view-goodnight" class="view-section text-center">
+    <!-- 晚安畫面 (點擊後緩慢暗化回首頁) -->
+    <div id="view-goodnight" class="view-section text-center cursor-pointer" onclick="fadeToSplash()">
         <div class="glass-orb bg-teal-900/40 w-[40rem] h-[40rem] top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2" style="animation: none;"></div>
         <h1 class="text-4xl font-light tracking-[0.2em] text-teal-100 mb-6" style="animation: pulse-soft 6s infinite;">晚安</h1>
         <p class="text-teal-200/40 text-sm font-light tracking-widest">世界已安靜，祝你做個好夢。</p>
-        <button onclick="goToView('view-splash')" class="mt-16 px-6 py-2 border border-teal-800/50 rounded-full text-teal-200/40 hover:bg-teal-900/30 hover:text-teal-200 transition text-sm tracking-widest z-10 relative">回到首頁</button>
+        <div class="mt-20 flex justify-center w-full">
+            <div class="ripple-indicator"></div>
+        </div>
     </div>
 
     <!-- 回顧日記 (History) -->
     <div id="view-history" class="view-section justify-start pt-10">
         <div class="w-full max-w-2xl mx-auto z-10">
-            <div class="flex justify-between items-center mb-8 px-2">
+            <div class="flex justify-between items-center mb-6 px-2">
                 <h2 class="text-2xl font-light text-teal-50 tracking-wider"><i class="fas fa-book-open mr-3 text-teal-300/80"></i>回顧日記</h2>
-                <button onclick="goToView('view-splash')" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/60 hover:text-white transition">
+                <button onclick="goToView('view-splash')" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-teal-200/60 hover:text-white transition z-[100]">
                     <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
 
-            <div id="history-container" class="space-y-6 overflow-y-auto pb-24 max-h-[80vh] px-2" style="scrollbar-width: none;">
-                <!-- 歷史紀錄將動態生成於此 -->
+            <!-- 切換列表與日曆模式 -->
+            <div class="flex justify-center mb-6 space-x-2">
+                <button id="btn-mode-list" onclick="setHistoryMode('list')" class="px-5 py-1.5 rounded-full bg-teal-500/20 text-teal-100 text-sm border border-teal-500/30 transition shadow-sm">列表</button>
+                <button id="btn-mode-calendar" onclick="setHistoryMode('calendar')" class="px-5 py-1.5 rounded-full text-teal-200/50 text-sm border border-transparent hover:text-teal-100 transition">日曆</button>
             </div>
-            
-            <div class="text-center mt-6">
-                 <button onclick="clearHistory()" class="text-rose-400/50 hover:text-rose-400 text-xs tracking-wider underline">清除所有紀錄</button>
+
+            <!-- 列表模式容器 -->
+            <div id="history-list-container" class="space-y-6 overflow-y-auto pb-24 max-h-[70vh] px-2" style="scrollbar-width: none;">
+                <!-- 列表紀錄生成於此 -->
+            </div>
+
+            <!-- 日曆模式容器 -->
+            <div id="history-calendar-container" class="hidden flex-col w-full pb-24 px-2">
+                <!-- 日曆紀錄生成於此 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 日曆模式：單日紀錄彈窗 -->
+    <div id="day-modal" class="fixed inset-0 z-50 hidden bg-[#131c1a]/90 backdrop-blur-sm flex-col items-center justify-start pt-20 px-4 pb-10">
+        <div class="w-full max-w-lg bg-black/40 border border-teal-500/30 rounded-3xl p-6 flex flex-col max-h-full shadow-2xl relative">
+            <div class="flex justify-between items-center mb-6 pb-3 border-b border-white/10">
+                <h3 id="day-modal-title" class="text-teal-50 tracking-wider text-lg font-medium"><i class="far fa-calendar-alt mr-2 text-teal-300/80"></i></h3>
+                <button onclick="closeDayModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-teal-200/60 hover:text-white hover:bg-rose-500/20 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="day-modal-content" class="overflow-y-auto space-y-6 flex-1 pr-2" style="scrollbar-width: none;">
+                <!-- 該日紀錄卡片生成於此 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 全局確認彈窗 (取代原生的 confirm，解決 iframe 阻擋問題) -->
+    <div id="global-confirm-modal" class="fixed inset-0 z-[200] hidden bg-[#131c1a]/80 backdrop-blur-sm flex-col items-center justify-center px-4">
+        <div class="glass-card p-6 md:p-8 max-w-sm w-full text-center border border-teal-500/30">
+            <h3 id="confirm-modal-title" class="text-xl font-medium text-teal-50 tracking-wider mb-3">提示</h3>
+            <p id="confirm-modal-message" class="text-sm text-teal-200/60 tracking-wide mb-8 leading-relaxed">確定要執行此動作嗎？</p>
+            <div class="flex space-x-4">
+                <button onclick="closeConfirmModal()" class="flex-1 py-3 rounded-xl border border-teal-500/30 text-teal-200/60 hover:text-white hover:bg-white/5 transition tracking-wider text-sm">取消</button>
+                <button id="confirm-modal-btn" onclick="executeConfirmAction()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-rose-500/80 to-rose-600/80 hover:from-rose-500 hover:to-rose-500 text-white transition tracking-wider text-sm shadow-[0_0_15px_rgba(244,63,94,0.2)]">確定</button>
             </div>
         </div>
     </div>
@@ -382,6 +454,8 @@
         };
         let stream = null;
         let meditationTimer = null;
+        let historyMode = 'list';
+        let calMonth = new Date();
         
         // 音樂狀態
         let audioCtx = null;
@@ -401,6 +475,118 @@
             "微小的行動將會為你開啟美好的一天，我們明天見。"
         ];
 
+        // --- 全局確認彈窗邏輯 ---
+        let confirmActionCallback = null;
+
+        function showConfirmModal(title, message, confirmText, callback) {
+            document.getElementById('confirm-modal-title').innerText = title;
+            document.getElementById('confirm-modal-message').innerHTML = message;
+            document.getElementById('confirm-modal-btn').innerText = confirmText;
+            confirmActionCallback = callback;
+
+            document.getElementById('global-confirm-modal').classList.remove('hidden');
+            document.getElementById('global-confirm-modal').classList.add('flex');
+        }
+
+        window.closeConfirmModal = function() {
+            document.getElementById('global-confirm-modal').classList.add('hidden');
+            document.getElementById('global-confirm-modal').classList.remove('flex');
+            confirmActionCallback = null;
+        }
+
+        window.executeConfirmAction = function() {
+            if (confirmActionCallback) confirmActionCallback();
+            closeConfirmModal();
+        }
+
+        // --- 取消並返回首頁功能 (修復事件穿透與彈窗阻擋) ---
+        window.cancelJourney = function(event) {
+            if (event) event.stopPropagation();
+            showConfirmModal(
+                "返回首頁",
+                "確定要放棄今天的紀錄嗎？<br>這將不會儲存目前的內容。",
+                "放棄紀錄",
+                () => {
+                    resetFormState();
+                    goToView('view-splash');
+                }
+            );
+        }
+
+        // --- 晚安後平滑返回首頁 ---
+        function fadeToSplash() {
+            // 創造一個黑色的遮罩並讓它慢慢浮現
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-[#000000] z-[999] opacity-0 transition-opacity duration-[2000ms] pointer-events-none';
+            document.body.appendChild(overlay);
+            
+            // 強制瀏覽器重繪，讓 transition 生效
+            void overlay.offsetWidth;
+            overlay.style.opacity = '1';
+            
+            // 畫面全黑後切換視圖，再慢慢淡出黑色遮罩
+            setTimeout(() => {
+                goToView('view-splash');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 2000); // 等待淡出動畫結束後移除
+            }, 2500); 
+        }
+
+        // --- 表單重置邏輯抽離 ---
+        function resetFormState() {
+            currentEntry = { id: null, date: null, gratitude: [], gains: [], tomorrow: "", photoData: null };
+            
+            document.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
+            
+            // 重置感恩頁面
+            document.getElementById('gratitude-inputs').classList.remove('hidden');
+            const gFb = document.getElementById('gratitude-feedback');
+            gFb.classList.add('hidden');
+            gFb.classList.remove('flex');
+            
+            // 重置明日頁面
+            document.getElementById('tomorrow-inputs').classList.remove('hidden');
+            const tFb = document.getElementById('tomorrow-feedback');
+            tFb.classList.add('hidden');
+            tFb.classList.remove('flex');
+            
+            const detoxCheck = document.getElementById('detox-check');
+            if (detoxCheck) detoxCheck.checked = false;
+            toggleDetoxButton();
+            
+            document.getElementById('meditation-setup').classList.remove('hidden');
+            document.getElementById('meditation-active').classList.add('hidden');
+            document.getElementById('meditation-active').classList.remove('flex');
+            
+            document.getElementById('camera-placeholder').classList.remove('hidden');
+            document.getElementById('photo-preview').classList.add('hidden');
+            document.getElementById('camera-video').classList.add('hidden');
+            document.getElementById('camera-controls').classList.add('hidden');
+            document.getElementById('camera-controls').classList.remove('flex');
+            document.getElementById('camera-init-controls').classList.remove('hidden');
+            
+            const btnTake = document.getElementById('btn-take-photo');
+            if(btnTake) btnTake.classList.remove('hidden');
+            const btnSave = document.getElementById('btn-save-photo');
+            if(btnSave) btnSave.classList.add('hidden');
+            const btnSkip = document.getElementById('btn-skip-photo');
+            if(btnSkip) {
+                btnSkip.innerText = "不留存，直接繼續";
+                btnSkip.onclick = skipCamera;
+            }
+
+            const btnSubmitGratitude = document.getElementById('btn-submit-gratitude');
+            if(btnSubmitGratitude) {
+                btnSubmitGratitude.innerHTML = '沉澱並封存';
+                btnSubmitGratitude.disabled = false;
+            }
+            const btnSubmitTomorrow = document.getElementById('btn-submit-tomorrow');
+            if(btnSubmitTomorrow) {
+                btnSubmitTomorrow.innerHTML = '確認這個小承諾';
+                btnSubmitTomorrow.disabled = false;
+            }
+        }
+
         // --- 音樂合成器 (Web Audio API) ---
         function initAudio() {
             if (!audioCtx) {
@@ -415,7 +601,6 @@
             }
             if (isMusicPlaying) return;
 
-            // 1. 產生療癒白噪音 (類似溫和的海浪聲 Brown Noise)
             let bufferSize = 2 * audioCtx.sampleRate;
             let noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             let output = noiseBuffer.getChannelData(0);
@@ -424,7 +609,7 @@
                 let white = Math.random() * 2 - 1;
                 output[i] = (lastOut + (0.02 * white)) / 1.02;
                 lastOut = output[i];
-                output[i] *= 3.5; // 音量補償
+                output[i] *= 3.5;
             }
             let noiseSource = audioCtx.createBufferSource();
             noiseSource.buffer = noiseBuffer;
@@ -432,11 +617,11 @@
 
             let noiseFilter = audioCtx.createBiquadFilter();
             noiseFilter.type = 'lowpass';
-            noiseFilter.frequency.value = 300; // 過濾掉高頻，讓聲音變溫暖
+            noiseFilter.frequency.value = 300;
 
             let noiseGain = audioCtx.createGain();
             noiseGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            noiseGain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 3); // 3秒淡入
+            noiseGain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 3);
 
             noiseSource.connect(noiseFilter);
             noiseFilter.connect(noiseGain);
@@ -444,7 +629,6 @@
             noiseSource.start();
             audioNodes.push({ source: noiseSource, gain: noiseGain });
 
-            // 2. 產生頌缽低頻 (174Hz 減輕壓力的頻率)
             let osc = audioCtx.createOscillator();
             osc.type = 'sine';
             osc.frequency.value = 174;
@@ -452,7 +636,6 @@
             let oscGain = audioCtx.createGain();
             oscGain.gain.setValueAtTime(0, audioCtx.currentTime);
 
-            // 加上 LFO 讓音量呈現呼吸起伏 (8秒一循環 = 0.125Hz，對應畫面的光圈)
             let lfo = audioCtx.createOscillator();
             lfo.type = 'sine';
             lfo.frequency.value = 0.125;
@@ -475,7 +658,6 @@
         function stopMeditationMusic() {
             if (!isMusicPlaying || !audioCtx) return;
             audioNodes.forEach(node => {
-                // 2秒平滑淡出
                 node.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
                 setTimeout(() => {
                     node.source.stop();
@@ -497,27 +679,24 @@
 
         // --- 視圖導航與背景控制 ---
         function goToView(viewId) {
-            // 清理相機與計時器、音樂
             if(viewId !== 'view-camera') stopCamera();
             if(viewId !== 'view-meditation') {
                 clearInterval(meditationTimer);
                 stopMeditationMusic();
             }
 
-            // 控制全局光暈的顯示 (晚安模式時調暗)
             const orbs = document.getElementById('global-orbs');
             if (viewId === 'view-goodnight') {
                 orbs.style.opacity = '0';
-                document.body.style.backgroundColor = '#050a09'; // 極深色
+                document.body.style.backgroundColor = '#050a09'; 
             } else if (viewId === 'view-meditation' || viewId === 'view-detox') {
                 orbs.style.opacity = '0.3';
                 document.body.style.backgroundColor = '#0a100f';
             } else {
                 orbs.style.opacity = '1';
-                document.body.style.backgroundColor = '#131c1a'; // 預設青瓷灰
+                document.body.style.backgroundColor = '#131c1a'; 
             }
 
-            // 切換視圖
             document.querySelectorAll('.view-section').forEach(el => {
                 el.classList.remove('active');
             });
@@ -537,25 +716,23 @@
             const w2 = document.getElementById('w-2').value;
             const w3 = document.getElementById('w-3').value;
 
-            // 儲存狀態 (過濾空白)
             currentEntry.gratitude = [g1, g2, g3].filter(v => v.trim() !== "");
             currentEntry.gains = [w1, w2, w3].filter(v => v.trim() !== "");
 
-            // UI 狀態切換
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 感受中...';
             btn.disabled = true;
-            document.getElementById('gratitude-feedback').classList.add('hidden');
 
-            // 模擬 AI 思考時間
             setTimeout(() => {
                 document.getElementById('gratitude-inputs').classList.add('hidden');
-                document.getElementById('gratitude-feedback').classList.remove('hidden');
-                document.getElementById('gratitude-feedback').style.animation = "fadeIn 0.8s ease forwards";
+                
+                const fb = document.getElementById('gratitude-feedback');
+                fb.classList.remove('hidden');
+                fb.classList.add('flex'); // 顯示 Flex-Col 排版
+                fb.style.animation = "fadeIn 0.8s ease forwards";
                 
                 const randomRes = gratitudeResponses[Math.floor(Math.random() * gratitudeResponses.length)];
                 document.getElementById('gratitude-ai-content').innerText = randomRes;
                 
-                // 恢復按鈕狀態 (如果使用者按上一頁回來)
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }, 1500);
@@ -574,8 +751,11 @@
 
             setTimeout(() => {
                 document.getElementById('tomorrow-inputs').classList.add('hidden');
-                document.getElementById('tomorrow-feedback').classList.remove('hidden');
-                document.getElementById('tomorrow-feedback').style.animation = "fadeIn 0.8s ease forwards";
+                
+                const fb = document.getElementById('tomorrow-feedback');
+                fb.classList.remove('hidden');
+                fb.classList.add('flex');
+                fb.style.animation = "fadeIn 0.8s ease forwards";
 
                 const randomRes = tomorrowResponses[Math.floor(Math.random() * tomorrowResponses.length)];
                 document.getElementById('tomorrow-ai-content').innerText = randomRes;
@@ -625,7 +805,6 @@
             canvas.height = 420;
             const ctx = canvas.getContext('2d');
             
-            // 鏡像處理：讓擷取的畫面也是水平翻轉過的，達到所見即所得
             ctx.translate(canvas.width, 0);
             ctx.scale(-1, 1);
             
@@ -646,7 +825,6 @@
 
             ctx.drawImage(video, startX, startY, drawWidth, drawHeight);
             
-            // 壓縮儲存空間
             const photoData = canvas.toDataURL('image/jpeg', 0.6);
             currentEntry.photoData = photoData;
 
@@ -657,7 +835,6 @@
             btnSave.classList.remove('hidden');
             btnTake.classList.add('hidden');
             
-            // 拍完照後，將放棄按鈕轉換為重新拍攝
             btnSkip.innerText = "重新拍攝";
             btnSkip.onclick = resetCamera;
         }
@@ -676,7 +853,6 @@
             btnSave.classList.add('hidden');
             btnTake.classList.remove('hidden');
             
-            // 恢復放棄按鈕狀態
             btnSkip.innerText = "不留存，直接繼續";
             btnSkip.onclick = skipCamera;
         }
@@ -716,7 +892,6 @@
             document.getElementById('meditation-active').classList.remove('hidden');
             document.getElementById('meditation-active').classList.add('flex');
 
-            // 啟動環境療癒音樂
             startMeditationMusic();
 
             let timeRemaining = minutes * 60;
@@ -755,56 +930,92 @@
                 let history = JSON.parse(localStorage.getItem('soulJournalHistory_v2')) || [];
                 history.unshift(currentEntry);
                 
-                // 保留最近 30 筆避免 LocalStorage 爆掉
                 if (history.length > 30) history.pop(); 
                 
                 try {
                     localStorage.setItem('soulJournalHistory_v2', JSON.stringify(history));
                 } catch (e) {
-                    // 若圖片太大導致容量不足，清除圖片後重存
                     currentEntry.photoData = null;
                     history[0] = currentEntry;
                     localStorage.setItem('soulJournalHistory_v2', JSON.stringify(history));
                 }
             }
-            // 重置當前紀錄準備下一次
-            currentEntry = { id: null, date: null, gratitude: [], gains: [], tomorrow: "", photoData: null };
-            
-            // 重置表單畫面
-            document.getElementById('gratitude-inputs').classList.remove('hidden');
-            document.getElementById('gratitude-feedback').classList.add('hidden');
-            document.getElementById('tomorrow-inputs').classList.remove('hidden');
-            document.getElementById('tomorrow-feedback').classList.add('hidden');
-            document.querySelectorAll('input').forEach(input => input.value = '');
-            document.getElementById('detox-check').checked = false;
-            toggleDetoxButton();
-            document.getElementById('meditation-setup').classList.remove('hidden');
-            document.getElementById('meditation-active').classList.add('hidden');
-            
-            // 重置相機畫面
-            document.getElementById('camera-placeholder').classList.remove('hidden');
-            document.getElementById('photo-preview').classList.add('hidden');
-            document.getElementById('camera-video').classList.add('hidden');
-            document.getElementById('camera-controls').classList.add('hidden');
-            document.getElementById('camera-controls').classList.remove('flex');
-            document.getElementById('camera-init-controls').classList.remove('hidden');
-            
-            const btnTake = document.getElementById('btn-take-photo');
-            if(btnTake) btnTake.classList.remove('hidden');
-            const btnSave = document.getElementById('btn-save-photo');
-            if(btnSave) btnSave.classList.add('hidden');
-            const btnSkip = document.getElementById('btn-skip-photo');
-            if(btnSkip) {
-                btnSkip.innerText = "不留存，直接繼續";
-                btnSkip.onclick = skipCamera;
-            }
+            resetFormState();
         }
 
         function showHistory() {
             goToView('view-history');
-            const container = document.getElementById('history-container');
-            container.innerHTML = '';
+            setHistoryMode(historyMode);
+        }
 
+        function setHistoryMode(mode) {
+            historyMode = mode;
+            
+            // 更新按鈕樣式
+            const activeClass = 'px-5 py-1.5 rounded-full bg-teal-500/20 text-teal-100 text-sm border border-teal-500/30 transition shadow-sm';
+            const inactiveClass = 'px-5 py-1.5 rounded-full text-teal-200/50 text-sm border border-transparent hover:text-teal-100 transition';
+            
+            document.getElementById('btn-mode-list').className = mode === 'list' ? activeClass : inactiveClass;
+            document.getElementById('btn-mode-calendar').className = mode === 'calendar' ? activeClass : inactiveClass;
+
+            // 切換容器顯示
+            document.getElementById('history-list-container').classList.toggle('hidden', mode !== 'list');
+            document.getElementById('history-calendar-container').classList.toggle('hidden', mode !== 'calendar');
+            document.getElementById('history-calendar-container').classList.toggle('flex', mode === 'calendar');
+
+            if (mode === 'list') {
+                renderHistoryList();
+            } else {
+                renderHistoryCalendar();
+            }
+        }
+
+        // 生成單篇卡片的 HTML
+        function getEntryCardHTML(entry, showFullDate = true) {
+            const displayDate = showFullDate ? entry.date : entry.date.split(' ')[1];
+            const dateIcon = showFullDate ? 'fa-calendar-alt' : 'fa-clock';
+            
+            let html = `<div class="glass-card p-6 border border-white/5 mb-6">
+                <div class="border-b border-white/10 pb-3 mb-5 flex justify-between items-end">
+                    <span class="text-teal-200 font-medium tracking-wider text-sm"><i class="far ${dateIcon} mr-2 opacity-70"></i>${displayDate}</span>
+                    <button onclick="deleteRecord(${entry.id})" class="text-teal-200/40 hover:text-rose-400 transition" title="刪除紀錄">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1 space-y-5">`;
+            
+            if(entry.gratitude && entry.gratitude.length > 0) {
+                html += `<div><h4 class="text-xs text-teal-300/80 mb-2 tracking-wider"><i class="fas fa-heart text-[10px] mr-1"></i>溫暖的人事物</h4><ul class="list-disc list-inside text-sm text-teal-50/90 space-y-1.5 font-light">`;
+                entry.gratitude.forEach(i => html += `<li>${i}</li>`);
+                html += `</ul></div>`;
+            }
+            
+            if(entry.gains && entry.gains.length > 0) {
+                html += `<div><h4 class="text-xs text-amber-300/80 mb-2 tracking-wider"><i class="fas fa-seedling text-[10px] mr-1"></i>微小的收穫</h4><ul class="list-disc list-inside text-sm text-teal-50/90 space-y-1.5 font-light">`;
+                entry.gains.forEach(i => html += `<li>${i}</li>`);
+                html += `</ul></div>`;
+            }
+
+            if(entry.tomorrow) {
+                html += `<div><h4 class="text-xs text-orange-300/80 mb-2 tracking-wider"><i class="fas fa-sun text-[10px] mr-1"></i>明日的起點</h4><p class="text-sm text-teal-50/90 font-light pl-1">${entry.tomorrow}</p></div>`;
+            }
+            
+            html += `</div>`; 
+
+            if(entry.photoData) {
+                html += `<div class="w-24 h-32 flex-shrink-0 md:w-32 md:h-40 rounded-xl overflow-hidden border border-white/10 self-start md:self-center mx-auto md:mx-0 shadow-lg">
+                            <img src="${entry.photoData}" alt="My smile" class="w-full h-full object-cover">
+                        </div>`;
+            }
+
+            html += `</div></div>`;
+            return html;
+        }
+
+        // 渲染列表模式
+        function renderHistoryList() {
+            const container = document.getElementById('history-list-container');
             let history = JSON.parse(localStorage.getItem('soulJournalHistory_v2')) || [];
 
             if (history.length === 0) {
@@ -812,52 +1023,142 @@
                 return;
             }
 
-            history.forEach(entry => {
-                const card = document.createElement('div');
-                card.className = 'glass-card p-6';
-                
-                let contentHTML = `<div class="border-b border-white/10 pb-3 mb-5 flex justify-between items-end">
-                                    <span class="text-teal-200 font-medium tracking-wider text-sm"><i class="far fa-calendar-alt mr-2 opacity-70"></i>${entry.date}</span>
-                                   </div>`;
-                
-                contentHTML += `<div class="flex flex-col md:flex-row gap-6">`;
-                contentHTML += `<div class="flex-1 space-y-5">`;
-                
-                if(entry.gratitude && entry.gratitude.length > 0) {
-                    contentHTML += `<div><h4 class="text-xs text-teal-300/80 mb-2 tracking-wider"><i class="fas fa-heart text-[10px] mr-1"></i>溫暖的人事物</h4><ul class="list-disc list-inside text-sm text-teal-50/90 space-y-1.5 font-light">`;
-                    entry.gratitude.forEach(i => contentHTML += `<li>${i}</li>`);
-                    contentHTML += `</ul></div>`;
-                }
-                
-                if(entry.gains && entry.gains.length > 0) {
-                    contentHTML += `<div><h4 class="text-xs text-amber-300/80 mb-2 tracking-wider"><i class="fas fa-seedling text-[10px] mr-1"></i>微小的收穫</h4><ul class="list-disc list-inside text-sm text-teal-50/90 space-y-1.5 font-light">`;
-                    entry.gains.forEach(i => contentHTML += `<li>${i}</li>`);
-                    contentHTML += `</ul></div>`;
-                }
-
-                if(entry.tomorrow) {
-                    contentHTML += `<div><h4 class="text-xs text-orange-300/80 mb-2 tracking-wider"><i class="fas fa-sun text-[10px] mr-1"></i>明日的起點</h4><p class="text-sm text-teal-50/90 font-light pl-1">${entry.tomorrow}</p></div>`;
-                }
-                
-                contentHTML += `</div>`; 
-
-                if(entry.photoData) {
-                    contentHTML += `<div class="w-24 h-32 flex-shrink-0 md:w-32 md:h-40 rounded-xl overflow-hidden border border-white/10 self-start md:self-center mx-auto md:mx-0 shadow-lg">
-                                        <img src="${entry.photoData}" alt="My smile" class="w-full h-full object-cover">
-                                    </div>`;
-                }
-
-                contentHTML += `</div>`;
-                card.innerHTML = contentHTML;
-                container.appendChild(card);
-            });
+            container.innerHTML = history.map(entry => getEntryCardHTML(entry, true)).join('');
         }
 
-        function clearHistory() {
-            if(confirm("確定要清除所有回顧紀錄嗎？這個動作無法復原喔。")) {
-                localStorage.removeItem('soulJournalHistory_v2');
-                showHistory();
+        // 處理日曆月份切換
+        function changeMonth(delta) {
+            calMonth.setMonth(calMonth.getMonth() + delta);
+            renderHistoryCalendar();
+        }
+
+        // 渲染日曆模式
+        function renderHistoryCalendar() {
+            const container = document.getElementById('history-calendar-container');
+            let history = JSON.parse(localStorage.getItem('soulJournalHistory_v2')) || [];
+
+            const year = calMonth.getFullYear();
+            const month = calMonth.getMonth();
+            const firstDay = new Date(year, month, 1).getDay(); // 0(Sun) - 6(Sat)
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // 將歷史紀錄按日期分組
+            const entriesByDay = {};
+            history.forEach(entry => {
+                const [datePart, timePart] = entry.date.split(' ');
+                const [eY, eM, eD] = datePart.split('/');
+                if (parseInt(eY) === year && parseInt(eM) === month + 1) {
+                    const d = parseInt(eD);
+                    if (!entriesByDay[d]) entriesByDay[d] = [];
+                    entriesByDay[d].push(entry);
+                }
+            });
+
+            // 建立日曆 HTML
+            let html = `
+                <div class="flex justify-between items-center mb-6 px-4 bg-white/5 rounded-2xl py-2 border border-white/5">
+                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full flex items-center justify-center text-teal-200/70 hover:bg-white/10 hover:text-white transition"><i class="fas fa-chevron-left"></i></button>
+                    <span class="text-teal-50 tracking-widest font-medium">${year}年 ${month + 1}月</span>
+                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-full flex items-center justify-center text-teal-200/70 hover:bg-white/10 hover:text-white transition"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="grid grid-cols-7 gap-2 text-center text-xs text-teal-200/60 mb-2 font-medium tracking-wider">
+                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                </div>
+                <div class="grid grid-cols-7 gap-2">
+            `;
+
+            // 填充空白天數
+            for (let i = 0; i < firstDay; i++) {
+                html += `<div></div>`;
             }
+
+            // 填充實際天數
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayEntries = entriesByDay[d] || [];
+                
+                if (dayEntries.length > 0) {
+                    // 有紀錄：尋找有照片的紀錄作為縮圖
+                    const entryWithPhoto = dayEntries.find(e => e.photoData);
+                    let bgStyle = '';
+                    let innerContent = '';
+                    
+                    if (entryWithPhoto) {
+                        bgStyle = `background-image: url(${entryWithPhoto.photoData}); background-size: cover; background-position: center;`;
+                    } else {
+                        // 無照片時的預設背景 (漸層與葉子圖案)
+                        bgStyle = `background: linear-gradient(135deg, rgba(20, 184, 166, 0.4), rgba(217, 119, 6, 0.2)); border: 1px solid rgba(255,255,255,0.1);`;
+                        innerContent = `<i class="fas fa-leaf text-teal-100/50 text-xl"></i>`;
+                    }
+
+                    html += `
+                    <div onclick="openDayModal(${year}, ${month+1}, ${d})" class="aspect-square rounded-xl cursor-pointer relative overflow-hidden flex items-center justify-center hover:scale-[1.05] transition shadow-lg group" style="${bgStyle}">
+                        ${innerContent}
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
+                        <span class="absolute bottom-1 right-1.5 text-[11px] text-white font-medium drop-shadow-md z-10" style="text-shadow: 0 1px 3px rgba(0,0,0,0.8);">${d}</span>
+                        ${dayEntries.length > 1 ? `<div class="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm"></div>` : ''}
+                    </div>`;
+                } else {
+                    // 無紀錄的空日期
+                    html += `<div class="aspect-square rounded-xl flex items-center justify-center text-teal-100/20 text-sm font-light border border-white/5 bg-white/5">${d}</div>`;
+                }
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        // 打開日曆單日彈窗
+        function openDayModal(y, m, d) {
+            const dateStr = `${y}/${m.toString().padStart(2,'0')}/${d.toString().padStart(2,'0')}`;
+            document.getElementById('day-modal-title').innerHTML = `<i class="far fa-calendar-alt mr-2 text-teal-300/80"></i>${dateStr}`;
+            
+            let history = JSON.parse(localStorage.getItem('soulJournalHistory_v2')) || [];
+            const dayEntries = history.filter(e => e.date.startsWith(dateStr));
+            
+            const container = document.getElementById('day-modal-content');
+            container.innerHTML = dayEntries.map(entry => getEntryCardHTML(entry, false)).join('');
+            
+            document.getElementById('day-modal').classList.remove('hidden');
+            document.getElementById('day-modal').classList.add('flex');
+        }
+
+        // 關閉日曆單日彈窗
+        function closeDayModal() {
+            document.getElementById('day-modal').classList.add('hidden');
+            document.getElementById('day-modal').classList.remove('flex');
+        }
+
+        // --- 刪除單筆紀錄 (修復 iframe 彈窗阻擋) ---
+        window.deleteRecord = function(id) {
+            showConfirmModal(
+                "刪除紀錄",
+                "確定要刪除這筆紀錄嗎？<br>此動作無法復原。",
+                "確定刪除",
+                () => {
+                    let history = JSON.parse(localStorage.getItem('soulJournalHistory_v2')) || [];
+                    history = history.filter(entry => entry.id !== id);
+                    localStorage.setItem('soulJournalHistory_v2', JSON.stringify(history));
+                    
+                    // 根據當前模式重新渲染
+                    if (historyMode === 'list') {
+                        renderHistoryList();
+                    } else {
+                        renderHistoryCalendar();
+                        // 如果彈窗開著，需要更新彈窗內容或關閉它
+                        const modal = document.getElementById('day-modal');
+                        if (!modal.classList.contains('hidden')) {
+                            const titleText = document.getElementById('day-modal-title').innerText.trim();
+                            const [y, m, d] = titleText.split('/');
+                            const remaining = history.filter(e => e.date.startsWith(titleText));
+                            
+                            if (remaining.length === 0) {
+                                closeDayModal();
+                            } else {
+                                openDayModal(parseInt(y), parseInt(m), parseInt(d));
+                            }
+                        }
+                    }
+                }
+            );
         }
     </script>
 </body>
